@@ -40,6 +40,11 @@ try:
             power = 0
         BP.set_motor_power(BP.PORT_C, power)
         
+        try:
+            print("Motor C power: %6d  Motor C Status: " % power, BP.get_motor_status(BP.PORT_C))
+        except IOError as error:
+            print(error)
+        
         time.sleep(0.02)  # delay for 0.02 seconds (20ms) to reduce the Raspberry Pi CPU load.
 
 except KeyboardInterrupt: # except the program gets interrupted by Ctrl+C on the keyboard.

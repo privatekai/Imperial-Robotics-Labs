@@ -40,7 +40,7 @@ try:
         BP.set_motor_position(BP.PORT_A, target)    # set motor A's target position to the current position of motor D
         
         try:
-            print("Motor A target: %6d  Motor A position: %6d" % (target, BP.get_motor_encoder(BP.PORT_A)))
+            print("Motor A target: %6d  Motor A position: %6d" % (target, BP.get_motor_encoder(BP.PORT_A)), "  Motor A Status: ", BP.get_motor_status(BP.PORT_A))
         except IOError as error:
             print(error)
         
