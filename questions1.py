@@ -15,7 +15,8 @@ WHEEL_DIAMETER = 69.36
 WHEEL_CIRCUMFERENCE = WHEEL_DIAMETER * PI
 WHEELBASE_WIDTH = 134.341
 
-WAIT_TIME = 0.02  # Time to wait after each movement (Seconds)
+MINI_WAIT_TIME = 0.02  # Time to wait after each movement (Seconds)
+BIG_WAIT_TIME = 0.5    # Time to wait after each set of movements (Seconds)
 
 BP = brickpi3.BrickPi3() # Create an instance of the BrickPi3 class. BP will be the BrickPi3 object.
 
@@ -27,10 +28,10 @@ def forward(distance: float):
     try:
         BP.set_motor_position(LEFT_MOTOR_PORT, BP.get_motor_encoder(LEFT_MOTOR_PORT) + offset/2)
         BP.set_motor_position(RIGHT_MOTOR_PORT, BP.get_motor_encoder(RIGHT_MOTOR_PORT) + offset/2)
-        time.sleep((distance / (MOVEMENT_SPEED * WHEEL_CIRCUMFERENCE / 360)) / 2 + WAIT_TIME)  # wait for movement to complete
+        time.sleep(abs(distance / (MOVEMENT_SPEED * WHEEL_CIRCUMFERENCE / 360)) / 2 + MINI_WAIT_TIME)  # wait for movement to complete
         BP.set_motor_position(RIGHT_MOTOR_PORT, BP.get_motor_encoder(RIGHT_MOTOR_PORT) + offset/2)
         BP.set_motor_position(LEFT_MOTOR_PORT, BP.get_motor_encoder(LEFT_MOTOR_PORT) + offset/2)
-        time.sleep((distance / (MOVEMENT_SPEED * WHEEL_CIRCUMFERENCE / 360)) / 2 + WAIT_TIME)  # wait for movement to complete
+        time.sleep(abs(distance / (MOVEMENT_SPEED * WHEEL_CIRCUMFERENCE / 360)) / 2 + MINI_WAIT_TIME)  # wait for movement to complete
     except IOError as error:
         print(error)
     
@@ -39,16 +40,18 @@ def forward(distance: float):
     except IOError as error:
         print(error)
 
+    time.sleep(BIG_WAIT_TIME)
+
 
 def turnClockwise(angle: float):
     offset = (WHEELBASE_WIDTH * PI * angle / 360) / WHEEL_CIRCUMFERENCE * 360
     try:
         BP.set_motor_position(LEFT_MOTOR_PORT, BP.get_motor_encoder(LEFT_MOTOR_PORT) + offset/2)
         BP.set_motor_position(RIGHT_MOTOR_PORT, BP.get_motor_encoder(RIGHT_MOTOR_PORT) - offset/2)
-        time.sleep(abs((WHEELBASE_WIDTH * PI * angle / 360) / (TURNING_SPEED * WHEEL_CIRCUMFERENCE / 360)) / 2 + WAIT_TIME)  # wait for movement to complete
+        time.sleep(abs((WHEELBASE_WIDTH * PI * angle / 360) / (TURNING_SPEED * WHEEL_CIRCUMFERENCE / 360)) / 2 + MINI_WAIT_TIME)  # wait for movement to complete
         BP.set_motor_position(RIGHT_MOTOR_PORT, BP.get_motor_encoder(RIGHT_MOTOR_PORT) - offset/2)
         BP.set_motor_position(LEFT_MOTOR_PORT, BP.get_motor_encoder(LEFT_MOTOR_PORT) + offset/2)
-        time.sleep(abs((WHEELBASE_WIDTH * PI * angle / 360) / (TURNING_SPEED * WHEEL_CIRCUMFERENCE / 360)) / 2 + WAIT_TIME)  # wait for movement to complete
+        time.sleep(abs((WHEELBASE_WIDTH * PI * angle / 360) / (TURNING_SPEED * WHEEL_CIRCUMFERENCE / 360)) / 2 + MINI_WAIT_TIME)  # wait for movement to complete
 
     except IOError as error:
         print(error)
@@ -57,6 +60,9 @@ def turnClockwise(angle: float):
         print("Turning clockwise %f degrees\nA offset %f -> %f\nD offset %f -> %f" % (angle, BP.get_motor_encoder(LEFT_MOTOR_PORT), BP.get_motor_encoder(LEFT_MOTOR_PORT) + offset, BP.get_motor_encoder(RIGHT_MOTOR_PORT), BP.get_motor_encoder(RIGHT_MOTOR_PORT) - offset))
     except IOError as error:
         print(error)
+
+    time.sleep(BIG_WAIT_TIME)
+
 try:
     try:
         BP.offset_motor_encoder(LEFT_MOTOR_PORT, BP.get_motor_encoder(LEFT_MOTOR_PORT)) # reset encoder A
