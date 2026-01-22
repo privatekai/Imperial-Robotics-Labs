@@ -16,7 +16,9 @@ WHEEL_CIRCUMFERENCE = WHEEL_DIAMETER * PI
 WHEELBASE_WIDTH = 134.341
 
 MINI_WAIT_TIME = 0.02  # Time to wait after each movement (Seconds)
-BIG_WAIT_TIME = 0.5    # Time to wait after each set of movements (Seconds)
+BIG_WAIT_TIME = 1    # Time to wait after each set of movements (Seconds)
+
+PAUSE = False
 
 BP = brickpi3.BrickPi3() # Create an instance of the BrickPi3 class. BP will be the BrickPi3 object.
 
@@ -26,12 +28,9 @@ RIGHT_MOTOR_PORT = BP.PORT_D
 def forward(distance: float):
     offset = (360 * distance) / WHEEL_CIRCUMFERENCE
     try:
-        BP.set_motor_position(LEFT_MOTOR_PORT, BP.get_motor_encoder(LEFT_MOTOR_PORT) + offset/2)
-        BP.set_motor_position(RIGHT_MOTOR_PORT, BP.get_motor_encoder(RIGHT_MOTOR_PORT) + offset/2)
-        time.sleep(abs(distance / (MOVEMENT_SPEED * WHEEL_CIRCUMFERENCE / 360)) / 2 + MINI_WAIT_TIME)  # wait for movement to complete
-        BP.set_motor_position(RIGHT_MOTOR_PORT, BP.get_motor_encoder(RIGHT_MOTOR_PORT) + offset/2)
-        BP.set_motor_position(LEFT_MOTOR_PORT, BP.get_motor_encoder(LEFT_MOTOR_PORT) + offset/2)
-        time.sleep(abs(distance / (MOVEMENT_SPEED * WHEEL_CIRCUMFERENCE / 360)) / 2 + MINI_WAIT_TIME)  # wait for movement to complete
+        BP.set_motor_position(LEFT_MOTOR_PORT, BP.get_motor_encoder(LEFT_MOTOR_PORT) + offset)
+        BP.set_motor_position(RIGHT_MOTOR_PORT, BP.get_motor_encoder(RIGHT_MOTOR_PORT) + offset)
+        if PAUSE: time.sleep(abs(distance / (MOVEMENT_SPEED * WHEEL_CIRCUMFERENCE / 360)) + MINI_WAIT_TIME)  # wait for movement to complete
     except IOError as error:
         print(error)
     
@@ -46,12 +45,9 @@ def forward(distance: float):
 def turnClockwise(angle: float):
     offset = (WHEELBASE_WIDTH * PI * angle / 360) / WHEEL_CIRCUMFERENCE * 360
     try:
-        BP.set_motor_position(LEFT_MOTOR_PORT, BP.get_motor_encoder(LEFT_MOTOR_PORT) + offset/2)
-        BP.set_motor_position(RIGHT_MOTOR_PORT, BP.get_motor_encoder(RIGHT_MOTOR_PORT) - offset/2)
-        time.sleep(abs((WHEELBASE_WIDTH * PI * angle / 360) / (TURNING_SPEED * WHEEL_CIRCUMFERENCE / 360)) / 2 + MINI_WAIT_TIME)  # wait for movement to complete
-        BP.set_motor_position(RIGHT_MOTOR_PORT, BP.get_motor_encoder(RIGHT_MOTOR_PORT) - offset/2)
-        BP.set_motor_position(LEFT_MOTOR_PORT, BP.get_motor_encoder(LEFT_MOTOR_PORT) + offset/2)
-        time.sleep(abs((WHEELBASE_WIDTH * PI * angle / 360) / (TURNING_SPEED * WHEEL_CIRCUMFERENCE / 360)) / 2 + MINI_WAIT_TIME)  # wait for movement to complete
+        BP.set_motor_position(LEFT_MOTOR_PORT, BP.get_motor_encoder(LEFT_MOTOR_PORT) + offset)
+        BP.set_motor_position(RIGHT_MOTOR_PORT, BP.get_motor_encoder(RIGHT_MOTOR_PORT) - offset)
+        if PAUSE: time.sleep(abs((WHEELBASE_WIDTH * PI * angle / 360) / (TURNING_SPEED * WHEEL_CIRCUMFERENCE / 360)) + MINI_WAIT_TIME)  # wait for movement to complete
 
     except IOError as error:
         print(error)
