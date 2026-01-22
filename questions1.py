@@ -16,14 +16,14 @@ WHEEL_CIRCUMFERENCE = WHEEL_DIAMETER * PI
 WHEELBASE_WIDTH = 134.341
 
 MINI_WAIT_TIME = 0.02  # Time to wait after each movement (Seconds)
-BIG_WAIT_TIME = 1    # Time to wait after each set of movements (Seconds)
-
-PAUSE = False
+BIG_WAIT_TIME = 0.5    # Time to wait after each set of movements (Seconds)
 
 BP = brickpi3.BrickPi3() # Create an instance of the BrickPi3 class. BP will be the BrickPi3 object.
 
 LEFT_MOTOR_PORT = BP.PORT_A
 RIGHT_MOTOR_PORT = BP.PORT_D
+
+PAUSE = True  # Whether to pause and wait for each movement to complete
 
 def forward(distance: float):
     offset = (360 * distance) / WHEEL_CIRCUMFERENCE
