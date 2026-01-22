@@ -6,7 +6,7 @@ import brickpi3 # import the BrickPi3 drivers
 
 # UNITS ARE MILLIMETRES
 
-MOVEMENT_SPEED = 300  # Speed for moving forward (Degrees Per Second)
+MOVEMENT_SPEED = 180  # Speed for moving forward (Degrees Per Second)
 TURNING_SPEED = 150   # Speed for turning (Degrees Per Second)
 
 PI = 3.14159627
@@ -15,8 +15,7 @@ WHEEL_DIAMETER = 69.36
 WHEEL_CIRCUMFERENCE = WHEEL_DIAMETER * PI
 WHEELBASE_WIDTH = 134.341
 
-MINI_WAIT_TIME = 0.02  # Time to wait after each movement (Seconds)
-BIG_WAIT_TIME = 0.5    # Time to wait after each set of movements (Seconds)
+MINI_WAIT_TIME = 0.5  # Time to wait after each movement (Seconds)
 
 BP = brickpi3.BrickPi3() # Create an instance of the BrickPi3 class. BP will be the BrickPi3 object.
 
@@ -30,7 +29,6 @@ def forward(distance: float):
     try:
         BP.set_motor_position(LEFT_MOTOR_PORT, BP.get_motor_encoder(LEFT_MOTOR_PORT) + offset)
         BP.set_motor_position(RIGHT_MOTOR_PORT, BP.get_motor_encoder(RIGHT_MOTOR_PORT) + offset)
-        if PAUSE: time.sleep(abs(distance / (MOVEMENT_SPEED * WHEEL_CIRCUMFERENCE / 360)) + MINI_WAIT_TIME)  # wait for movement to complete
     except IOError as error:
         print(error)
     
@@ -39,7 +37,7 @@ def forward(distance: float):
     except IOError as error:
         print(error)
 
-    time.sleep(BIG_WAIT_TIME)
+    if PAUSE: time.sleep(abs(distance / (MOVEMENT_SPEED * WHEEL_CIRCUMFERENCE / 360)) + MINI_WAIT_TIME)  # wait for movement to complete
 
 
 def turnClockwise(angle: float):
@@ -47,7 +45,6 @@ def turnClockwise(angle: float):
     try:
         BP.set_motor_position(LEFT_MOTOR_PORT, BP.get_motor_encoder(LEFT_MOTOR_PORT) + offset)
         BP.set_motor_position(RIGHT_MOTOR_PORT, BP.get_motor_encoder(RIGHT_MOTOR_PORT) - offset)
-        if PAUSE: time.sleep(abs((WHEELBASE_WIDTH * PI * angle / 360) / (TURNING_SPEED * WHEEL_CIRCUMFERENCE / 360)) + MINI_WAIT_TIME)  # wait for movement to complete
 
     except IOError as error:
         print(error)
@@ -57,7 +54,7 @@ def turnClockwise(angle: float):
     except IOError as error:
         print(error)
 
-    time.sleep(BIG_WAIT_TIME)
+    if PAUSE: time.sleep(abs((WHEELBASE_WIDTH * PI * angle / 360) / (TURNING_SPEED * WHEEL_CIRCUMFERENCE / 360)) + MINI_WAIT_TIME)  # wait for movement to complete
 
 try:
     try:
