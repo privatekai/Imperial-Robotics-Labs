@@ -27,10 +27,10 @@ def forward(distance: float):
     try:
         BP.set_motor_position(LEFT_MOTOR_PORT, BP.get_motor_encoder(LEFT_MOTOR_PORT) + offset/2)
         BP.set_motor_position(RIGHT_MOTOR_PORT, BP.get_motor_encoder(RIGHT_MOTOR_PORT) + offset/2)
-        time.sleep(distance / (MOVEMENT_SPEED * WHEEL_CIRCUMFERENCE / 360) / 2 + WAIT_TIME)  # wait for movement to complete
+        time.sleep((distance / (MOVEMENT_SPEED * WHEEL_CIRCUMFERENCE / 360)) / 2 + WAIT_TIME)  # wait for movement to complete
         BP.set_motor_position(RIGHT_MOTOR_PORT, BP.get_motor_encoder(RIGHT_MOTOR_PORT) + offset/2)
         BP.set_motor_position(LEFT_MOTOR_PORT, BP.get_motor_encoder(LEFT_MOTOR_PORT) + offset/2)
-        time.sleep(distance / (MOVEMENT_SPEED * WHEEL_CIRCUMFERENCE / 360) / 2 + WAIT_TIME)  # wait for movement to complete
+        time.sleep((distance / (MOVEMENT_SPEED * WHEEL_CIRCUMFERENCE / 360)) / 2 + WAIT_TIME)  # wait for movement to complete
     except IOError as error:
         print(error)
     
@@ -64,8 +64,8 @@ try:
     except IOError as error:
         print(error)
     
-    BP.set_motor_limits(LEFT_MOTOR_PORT, 50, 200)
-    BP.set_motor_limits(RIGHT_MOTOR_PORT, 50, 200)
+    BP.set_motor_limits(LEFT_MOTOR_PORT, 50, TURNING_SPEED)
+    BP.set_motor_limits(RIGHT_MOTOR_PORT, 50, TURNING_SPEED)
 
     # count = 0
     # while (count < 4):
