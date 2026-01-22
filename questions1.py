@@ -67,14 +67,11 @@ try:
     BP.set_motor_limits(LEFT_MOTOR_PORT, 50, TURNING_SPEED)
     BP.set_motor_limits(RIGHT_MOTOR_PORT, 50, TURNING_SPEED)
 
-    # count = 0
-    # while (count < 4):
-    #     count += 1
-    #     forward(400)
-    #     turnClockwise(-90)
-
-    # turn calibration
-    turnClockwise(360)
+    count = 0
+    while (count < 4):
+        count += 1
+        forward(400)
+        turnClockwise(-90)
 
 except KeyboardInterrupt: # except the program gets interrupted by Ctrl+C on the keyboard.
     BP.reset_all()        # Unconfigure the sensors, disable the motors, and restore the LED to the control of the BrickPi3 firmware.
