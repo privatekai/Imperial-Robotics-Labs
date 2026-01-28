@@ -11,9 +11,12 @@ TURNING_SPEED = 150   # Speed for turning (Degrees Per Second)
 
 PI = 3.14159627
 
-WHEEL_DIAMETER = 68.5
+WHEEL_DIAMETER = 67
 WHEEL_CIRCUMFERENCE = WHEEL_DIAMETER * PI
-WHEELBASE_WIDTH = 138
+WHEELBASE_WIDTH = 152
+
+DISTANCE_ERROR = 2 * PI
+ANGLE_ERROR = 0
 
 MINI_WAIT_TIME = 0.75  # Time to wait after each movement (Seconds)
 
@@ -73,7 +76,7 @@ def wait_for_motor_position(left_target, right_target):
     return False
 
 def forward(distance: float):
-    target = (360 * distance) / WHEEL_CIRCUMFERENCE
+    target = (360 * distance) / (WHEEL_CIRCUMFERENCE + DISTANCE_ERROR)
 
     try:
         # Reset both encoders to 0 to ensure synchronized absolute targets
@@ -109,7 +112,7 @@ def turnClockwise(angle: float):
     angle_rad = angle * PI / 180.0
     
     # Calculate arc length each wheel must travel (radius = half wheelbase)
-    arc_length = angle_rad * (WHEELBASE_WIDTH / 2.0)
+    arc_length = angle_rad * (WHEELBASE_WIDTH + ANGLE_ERROR) / 2.0
     
     # Convert arc length to encoder degrees
     offset = (arc_length / WHEEL_CIRCUMFERENCE) * 360.0
