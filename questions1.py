@@ -13,9 +13,9 @@ PI = 3.14159627
 
 WHEEL_DIAMETER = 70.24
 WHEEL_CIRCUMFERENCE = WHEEL_DIAMETER * PI
-WHEELBASE_WIDTH = 137
+WHEELBASE_WIDTH = 141.5
 
-MINI_WAIT_TIME = 0.5  # Time to wait after each movement (Seconds)
+MINI_WAIT_TIME = 0.75  # Time to wait after each movement (Seconds)
 
 BP = brickpi3.BrickPi3() # Create an instance of the BrickPi3 class. BP will be the BrickPi3 object.
 
