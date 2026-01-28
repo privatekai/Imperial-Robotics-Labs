@@ -13,7 +13,7 @@ PI = 3.14159627
 
 WHEEL_DIAMETER = 69.36
 WHEEL_CIRCUMFERENCE = WHEEL_DIAMETER * PI
-WHEELBASE_WIDTH = 134.341
+WHEELBASE_WIDTH = 129.863
 
 MINI_WAIT_TIME = 0.5  # Time to wait after each movement (Seconds)
 
@@ -153,7 +153,7 @@ try:
     BP.set_motor_limits(RIGHT_MOTOR_PORT, 50, MOVEMENT_SPEED)
 
     count = 0
-    while (count < 4):
+    while (count < 2):
         count += 1
         forward(400)
         turnClockwise(-90)
