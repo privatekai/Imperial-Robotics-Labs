@@ -25,7 +25,7 @@ BP = brickpi3.BrickPi3() # Create an instance of the BrickPi3 class. BP will be 
 LEFT_MOTOR_PORT = BP.PORT_A
 RIGHT_MOTOR_PORT = BP.PORT_D
 
-POSITION_TOLERANCE = 0.5  # Tolerance in degrees for position checking
+POSITION_TOLERANCE = 1.5  # Tolerance in degrees for position checking
 TIMEOUT = 60  # Maximum time to wait for motors to reach position (Seconds)
 
 def wait_for_motor_position(left_target, right_target):
