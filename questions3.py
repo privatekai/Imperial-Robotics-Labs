@@ -12,10 +12,10 @@ TURNING_SPEED = 150   # Speed for turning (Degrees Per Second)
 PI = 3.14159627
 
 WHEEL_DIAMETER = 67
-WHEEL_CIRCUMFERENCE = WHEEL_DIAMETER * PI
+WHEEL_CIRCUMFERENCE = WHEEL_DIAMETER
 WHEELBASE_WIDTH = 152
 
-DISTANCE_ERROR = 0.75 * PI
+DISTANCE_ERROR = 1.40
 ANGLE_ERROR = -19.5
 
 MINI_WAIT_TIME = 0.75  # Time to wait after each movement (Seconds)
@@ -76,7 +76,7 @@ def wait_for_motor_position(left_target, right_target):
     return False
 
 def forward(distance: float):
-    target = (360 * distance) / (WHEEL_CIRCUMFERENCE + DISTANCE_ERROR)
+    target = (360 * distance) / PI * (WHEEL_CIRCUMFERENCE + DISTANCE_ERROR)
 
     try:
         # Reset both encoders to 0 to ensure synchronized absolute targets
