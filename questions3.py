@@ -115,7 +115,7 @@ def turnClockwise(angle: float):
     arc_length = angle_rad * (WHEELBASE_WIDTH + ANGLE_ERROR) / 2.0
     
     # Convert arc length to encoder degrees
-    offset = (arc_length / WHEEL_CIRCUMFERENCE) * 360.0
+    offset = (arc_length / (PI * WHEEL_CIRCUMFERENCE)) * 360.0
 
     try:
         # Reset both encoders to 0 for clean starting positions
