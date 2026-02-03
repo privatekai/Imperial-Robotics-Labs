@@ -16,7 +16,7 @@ WHEEL_CIRCUMFERENCE = WHEEL_DIAMETER
 WHEELBASE_WIDTH = 152
 
 DISTANCE_ERROR = -0.45 # Making it bigger makes it go less far
-ANGLE_ERROR = -8 # Making it bigger makes it turn more
+ANGLE_ERROR = -5 # Making it bigger makes it turn more
 
 MINI_WAIT_TIME = 0.75  # Time to wait after each movement (Seconds)
 
@@ -25,7 +25,7 @@ BP = brickpi3.BrickPi3() # Create an instance of the BrickPi3 class. BP will be 
 LEFT_MOTOR_PORT = BP.PORT_A
 RIGHT_MOTOR_PORT = BP.PORT_D
 
-POSITION_TOLERANCE = 5.0  # Tolerance in degrees for position checking (increased to prevent timeout issues)
+POSITION_TOLERANCE = 10  # Tolerance in degrees for position checking (increased to prevent timeout issues)
 TIMEOUT = 60  # Maximum time to wait for motors to reach position (Seconds)
 
 def wait_for_motor_position(left_target, right_target):
