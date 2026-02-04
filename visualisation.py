@@ -2,8 +2,8 @@ import numpy as np
 import time
 
 # square constants
-SQUARE_X_OFFSET = 40 # adjust these two to position the square
-SQUARE_Y_OFFSET = 40
+SQUARE_X_OFFSET = 200 # adjust these two to position the square
+SQUARE_Y_OFFSET = 100
 SQUARE_DRAW_SIZE = 500 # adjust this to scale the square
 SQUARE_REAL_SIZE = 40 # in cm
 
@@ -13,7 +13,7 @@ ROBOT_START_POS = [SQUARE_X_OFFSET, SQUARE_DRAW_SIZE + SQUARE_Y_OFFSET, 0]
 
 # distribution constants
 E_MEAN, E_VAR = 0, 1 # in cm
-F_MEAN, F_VAR = 0, 1 # in cm
+F_MEAN, F_VAR = 0, 1 # in degrees
 G_MEAN, G_VAR = 0, 1 # in degrees
 
 
@@ -44,7 +44,7 @@ def apply_turn(particle, angle):
     x, y, theta = particle
     theta_rand = np.random.normal(G_MEAN, G_VAR)
 
-    return theta + angle + theta_rand
+    return np.array([x, y, theta + angle + theta_rand])
     
 
 corners = [(SQUARE_X_OFFSET, SQUARE_Y_OFFSET), 
@@ -59,11 +59,15 @@ for i in range(1, len(corners) + 1):
 
 for line in lines:
     print("drawLine:", str(line))
+    
+time.sleep(1)
  
 for _ in range(4):
     for _ in range(4):
-        for particle in particles:
-            print("drawParticles:", str(tuple(particle)))
+        print("drawParticles:", list(map(tuple, particles)))
+        time.sleep(1)
         particles = np.apply_along_axis(lambda p: apply_forward(p, 10), axis=1, arr=particles)
     particles = np.apply_along_axis(lambda p: apply_turn(p, -90), axis=1, arr=particles)
-        
+
+# render for last position
+print("drawParticles:", list(map(tuple, particles)))
