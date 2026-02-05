@@ -170,6 +170,7 @@ try:
     BP.set_motor_limits(RIGHT_MOTOR_PORT, 50, MOVEMENT_SPEED)
 
     particles = np.array([ROBOT_START_POS] * NUM_PARTICLES)
+    weights = np.array([1/NUM_PARTICLES] * NUM_PARTICLES)
     
     initial_drawing(particles)
 
