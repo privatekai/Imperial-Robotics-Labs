@@ -14,7 +14,7 @@ TURNING_SPEED = 150   # Speed for turning (Degrees Per Second)
 PI = 3.14159627
 
 WHEEL_DIAMETER = 67
-WHEEL_CIRCUMFERENCE = WHEEL_DIAMETER
+WHEEL_CIRCUMFERENCE = WHEEL_DIAMETER * PI
 WHEELBASE_WIDTH = 152
 
 DISTANCE_ERROR = -0.45 # Making it bigger makes it go less far
@@ -78,7 +78,7 @@ def wait_for_motor_position(left_target, right_target):
     return False
 
 def forward(particles, distance: float):
-    target = (360 * distance) / (PI * (WHEEL_CIRCUMFERENCE + DISTANCE_ERROR))
+    target = (360 * distance) / (WHEEL_CIRCUMFERENCE + DISTANCE_ERROR)
 
     try:
         # Reset both encoders to 0 to ensure synchronized absolute targets
@@ -123,7 +123,7 @@ def turnClockwise(particles, angle: float):
     arc_length = angle_rad * (WHEELBASE_WIDTH + ANGLE_ERROR) / 2.0
     
     # Convert arc length to encoder degrees
-    offset = (arc_length / (PI * WHEEL_CIRCUMFERENCE)) * 360.0
+    offset = (arc_length / WHEEL_CIRCUMFERENCE) * 360.0
 
     try:
         # Reset both encoders to 0 for clean starting positions
@@ -172,6 +172,8 @@ try:
     particles = np.array([ROBOT_START_POS] * NUM_PARTICLES)
     
     initial_drawing(particles)
+
+    time.sleep(1)
 
     count = 0
     while (count < 4):

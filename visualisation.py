@@ -5,14 +5,14 @@ import time
 SQUARE_X_OFFSET = 200 # adjust these two to position the square
 SQUARE_Y_OFFSET = 100
 SQUARE_DRAW_SIZE = 500 # adjust this to scale the square
-SQUARE_REAL_SIZE = 40 # in cm
+SQUARE_REAL_SIZE = 400 # in mm
 
 # particle constants
 NUM_PARTICLES = 100
 ROBOT_START_POS = [SQUARE_X_OFFSET, SQUARE_DRAW_SIZE + SQUARE_Y_OFFSET, 0]
 
 # distribution constants
-E_MEAN, E_VAR = 0, 1 # in cm
+E_MEAN, E_VAR = 0, 10 # in mm
 F_MEAN, F_VAR = 0, 1 # in degrees
 G_MEAN, G_VAR = 0, 1 # in degrees
 
@@ -76,7 +76,7 @@ def initial_drawing(particles):
 #     for _ in range(4):
 #         print("drawParticles:", list(map(tuple, particles)))
 #         time.sleep(1)
-#         particles = np.apply_along_axis(lambda p: apply_forward(p, 10), axis=1, arr=particles)
+#         particles = np.apply_along_axis(lambda p: apply_forward(p, 100), axis=1, arr=particles)
 #     particles = np.apply_along_axis(lambda p: apply_turn(p, -90), axis=1, arr=particles)
 
 # # render for last position
