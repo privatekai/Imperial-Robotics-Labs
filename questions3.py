@@ -2,7 +2,9 @@ from __future__ import print_function # use python 3 syntax but make it compatib
 from __future__ import division       #                           ''
 
 import time     # import the time library for the sleep function
-import brickpi3 # import the BrickPi3 drivers
+import brickpi3
+from visualisation import NUM_PARTICLES, ROBOT_START_POS, apply_all_forward, apply_all_turn # import the BrickPi3 drivers
+import numpy as np
 
 # UNITS ARE MILLIMETRES
 
@@ -75,7 +77,7 @@ def wait_for_motor_position(left_target, right_target):
 
     return False
 
-def forward(distance: float):
+def forward(particles, distance: float):
     target = (360 * distance) / (PI * (WHEEL_CIRCUMFERENCE + DISTANCE_ERROR))
 
     try:
@@ -94,14 +96,20 @@ def forward(distance: float):
         BP.set_motor_position(RIGHT_MOTOR_PORT, target)
 
         wait_for_motor_position(target, target)
+
+        # Update particles
+        particles = apply_all_forward(particles, distance)
+
         time.sleep(MINI_WAIT_TIME)  # Small pause after reaching target
         print("Forward movement completed\n")
+
+        return particles
 
     except IOError as error:
         print("IOError in forward: %s" % error)
 
 
-def turnClockwise(angle: float):
+def turnClockwise(particles, angle: float):
     """
     Turn the robot on the spot around its center (between the wheels).
     For differential drive turning on the spot:
@@ -138,8 +146,14 @@ def turnClockwise(angle: float):
         BP.set_motor_position(RIGHT_MOTOR_PORT, right_target)
 
         wait_for_motor_position(left_target, right_target)
+
+        # Update particles
+        particles = apply_all_turn(particles, angle)
+
         time.sleep(MINI_WAIT_TIME)  # Small pause after reaching target
         print("Turn completed\n")
+
+        return particles
 
     except IOError as error:
         print("IOError in turnClockwise: %s" % error)
@@ -155,11 +169,13 @@ try:
     BP.set_motor_limits(LEFT_MOTOR_PORT, 50, MOVEMENT_SPEED)
     BP.set_motor_limits(RIGHT_MOTOR_PORT, 50, MOVEMENT_SPEED)
 
+    particles = np.array([ROBOT_START_POS] * NUM_PARTICLES)
+
     count = 0
     while (count < 4):
         count += 1
-        forward(400)
-        turnClockwise(-90)
+        particles = forward(particles, 400)
+        particles = turnClockwise(particles, -90)
 
 except KeyboardInterrupt: # except the program gets interrupted by Ctrl+C on the keyboard.
     BP.reset_all()        # Unconfigure the sensors, disable the motors, and restore the LED to the control of the BrickPi3 firmware.

@@ -45,29 +45,35 @@ def apply_turn(particle, angle):
     theta_rand = np.random.normal(G_MEAN, G_VAR)
 
     return np.array([x, y, theta + angle + theta_rand])
+
+def apply_all_forward(particles, distance):
+    return np.apply_along_axis(lambda p: apply_forward(p, distance), axis=1, arr=particles)
+
+def apply_all_turn(particles, angle):
+    return np.apply_along_axis(lambda p: apply_turn(p, angle), axis=1, arr=particles)
+
+
+# corners = [(SQUARE_X_OFFSET, SQUARE_Y_OFFSET), 
+#            (SQUARE_DRAW_SIZE + SQUARE_X_OFFSET, SQUARE_Y_OFFSET), 
+#            (SQUARE_DRAW_SIZE + SQUARE_X_OFFSET, SQUARE_DRAW_SIZE + SQUARE_Y_OFFSET), (SQUARE_X_OFFSET, SQUARE_DRAW_SIZE + SQUARE_Y_OFFSET)]
+# lines = []
+
+# particles = np.array([ROBOT_START_POS] * NUM_PARTICLES)
+
+# for i in range(1, len(corners) + 1):
+#     lines.append(corners[i - 1] + corners[i % len(corners)])
+
+# for line in lines:
+#     print("drawLine:", str(line))
     
-
-corners = [(SQUARE_X_OFFSET, SQUARE_Y_OFFSET), 
-           (SQUARE_DRAW_SIZE + SQUARE_X_OFFSET, SQUARE_Y_OFFSET), 
-           (SQUARE_DRAW_SIZE + SQUARE_X_OFFSET, SQUARE_DRAW_SIZE + SQUARE_Y_OFFSET), (SQUARE_X_OFFSET, SQUARE_DRAW_SIZE + SQUARE_Y_OFFSET)]
-lines = []
-
-particles = np.array([ROBOT_START_POS] * NUM_PARTICLES)
-
-for i in range(1, len(corners) + 1):
-    lines.append(corners[i - 1] + corners[i % len(corners)])
-
-for line in lines:
-    print("drawLine:", str(line))
-    
-time.sleep(1)
+# time.sleep(1)
  
-for _ in range(4):
-    for _ in range(4):
-        print("drawParticles:", list(map(tuple, particles)))
-        time.sleep(1)
-        particles = np.apply_along_axis(lambda p: apply_forward(p, 10), axis=1, arr=particles)
-    particles = np.apply_along_axis(lambda p: apply_turn(p, -90), axis=1, arr=particles)
+# for _ in range(4):
+#     for _ in range(4):
+#         print("drawParticles:", list(map(tuple, particles)))
+#         time.sleep(1)
+#         particles = np.apply_along_axis(lambda p: apply_forward(p, 10), axis=1, arr=particles)
+#     particles = np.apply_along_axis(lambda p: apply_turn(p, -90), axis=1, arr=particles)
 
-# render for last position
-print("drawParticles:", list(map(tuple, particles)))
+# # render for last position
+# print("drawParticles:", list(map(tuple, particles)))
