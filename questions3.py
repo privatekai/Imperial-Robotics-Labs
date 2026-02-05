@@ -3,7 +3,7 @@ from __future__ import division       #                           ''
 
 import time     # import the time library for the sleep function
 import brickpi3
-from visualisation import NUM_PARTICLES, ROBOT_START_POS, apply_all_forward, apply_all_turn # import the BrickPi3 drivers
+from visualisation import NUM_PARTICLES, ROBOT_START_POS, apply_all_forward, apply_all_turn, initial_drawing # import the BrickPi3 drivers
 import numpy as np
 
 # UNITS ARE MILLIMETRES
@@ -170,6 +170,8 @@ try:
     BP.set_motor_limits(RIGHT_MOTOR_PORT, 50, MOVEMENT_SPEED)
 
     particles = np.array([ROBOT_START_POS] * NUM_PARTICLES)
+    
+    initial_drawing(particles)
 
     count = 0
     while (count < 4):
