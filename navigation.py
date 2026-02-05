@@ -10,16 +10,13 @@ def robot_position(particles, weights):
         y += particles[i][1] * weights[i]
         theta += particles[i][2] * weights[i]
 
-    x /= NUM_PARTICLES
-    y /= NUM_PARTICLES
-    theta /= NUM_PARTICLES
     particle = (x, y, theta)
     return screen_to_real(particle)
 
 def screen_to_real(particle):
     x, y, theta = particle
     x = ((x - SQUARE_X_OFFSET) / SQUARE_DRAW_SIZE) * SQUARE_REAL_SIZE
-    y = ((y - SQUARE_Y_OFFSET - SQUARE_DRAW_SIZE) / SQUARE_DRAW_SIZE) * SQUARE_REAL_SIZE
+    y = ((y - SQUARE_Y_OFFSET) / SQUARE_DRAW_SIZE) * SQUARE_REAL_SIZE
     return (x, y, theta)
 
 def navigate_to_waypoint(waypoint, particles, weights):
@@ -35,6 +32,8 @@ def navigate_to_waypoint(waypoint, particles, weights):
     print("robot_theta: ", robot_theta)
 
     distance = np.sqrt((w_x - robot_x)**2 + (w_y - robot_y)**2)
+
+    print("robot_y: ", robot_y)
     
     phi = np.rad2deg(np.arctan((w_x - robot_x) / (w_y - robot_y)))
 
