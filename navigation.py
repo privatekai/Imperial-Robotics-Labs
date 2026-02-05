@@ -4,7 +4,7 @@ from questions3 import BP, LEFT_MOTOR_PORT, MOVEMENT_SPEED, RIGHT_MOTOR_PORT, fo
 from visualisation import NUM_PARTICLES, ROBOT_START_POS, SQUARE_DRAW_SIZE, SQUARE_REAL_SIZE, SQUARE_X_OFFSET, SQUARE_Y_OFFSET, initial_drawing
 
 def robot_position(particles, weights):
-    x, y, theta = 0
+    x, y, theta = (0, 0, 0)
     for i in range(NUM_PARTICLES):
         x += particles[i][0] * weights[i]
         y += particles[i][1] * weights[i]
