@@ -1,6 +1,7 @@
+import time
 import numpy as np
-from questions3 import forward, turnClockwise
-from visualisation import NUM_PARTICLES, SQUARE_DRAW_SIZE, SQUARE_REAL_SIZE, SQUARE_X_OFFSET, SQUARE_Y_OFFSET
+from questions3 import BP, LEFT_MOTOR_PORT, MOVEMENT_SPEED, RIGHT_MOTOR_PORT, forward, turnClockwise
+from visualisation import NUM_PARTICLES, ROBOT_START_POS, SQUARE_DRAW_SIZE, SQUARE_REAL_SIZE, SQUARE_X_OFFSET, SQUARE_Y_OFFSET, initial_drawing
 
 def robot_position(particles, weights):
     x, y, theta = 0
@@ -36,3 +37,26 @@ def navigate_to_waypoint(waypoint, particles, weights):
     particles = forward(particles, distance)
 
     return particles
+
+try:
+    try:
+        BP.offset_motor_encoder(LEFT_MOTOR_PORT, BP.get_motor_encoder(LEFT_MOTOR_PORT)) # reset encoder A
+        BP.offset_motor_encoder(RIGHT_MOTOR_PORT, BP.get_motor_encoder(RIGHT_MOTOR_PORT)) # reset encoder D
+    except IOError as error:
+        print(error)
+    
+    # Initial motor limits (will be updated in forward() and turnClockwise())
+    BP.set_motor_limits(LEFT_MOTOR_PORT, 50, MOVEMENT_SPEED)
+    BP.set_motor_limits(RIGHT_MOTOR_PORT, 50, MOVEMENT_SPEED)
+
+    particles = np.array([ROBOT_START_POS] * NUM_PARTICLES)
+    weights = np.array([1/NUM_PARTICLES] * NUM_PARTICLES)
+    
+    initial_drawing(particles)
+
+    time.sleep(1)
+
+    particles = navigate_to_waypoint((80, 40), particles, weights)
+
+except KeyboardInterrupt: # except the program gets interrupted by Ctrl+C on the keyboard.
+    BP.reset_all()        # Unconfigure the sensors, disable the motors, and restore the LED to the control of the BrickPi3 firmware.
