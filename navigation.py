@@ -1,27 +1,10 @@
 import time
 import numpy as np
 from questions3 import BP, LEFT_MOTOR_PORT, MOVEMENT_SPEED, RIGHT_MOTOR_PORT, forward, turnClockwise
-from visualisation import NUM_PARTICLES, ROBOT_START_POS, SQUARE_DRAW_SIZE, SQUARE_REAL_SIZE, SQUARE_X_OFFSET, SQUARE_Y_OFFSET, initial_drawing
-
-def robot_position(particles, weights):
-    x, y, theta = (0, 0, 0)
-    for i in range(NUM_PARTICLES):
-        x += particles[i][0] * weights[i]
-        y += particles[i][1] * weights[i]
-        theta += particles[i][2] * weights[i]
-
-    particle = (x, y, theta)
-    return screen_to_real(particle)
-
-def screen_to_real(particle):
-    x, y, theta = particle
-    x = ((x - SQUARE_X_OFFSET) / SQUARE_DRAW_SIZE) * SQUARE_REAL_SIZE
-    y = ((y - SQUARE_Y_OFFSET) / SQUARE_DRAW_SIZE) * SQUARE_REAL_SIZE
-    return (x, y, theta)
+from visualisation import NUM_PARTICLES, ROBOT_START_POS, initial_drawing, robot_position
 
 def navigate_to_waypoint(waypoint, particles, weights):
     # mean of the particles X, Y and theta
-    # convert mean from draw coordinates to real coordinates
     # find angle and distance to get to waypoint
     # move robot (this will update the particles).
     robot_x, robot_y, robot_theta = robot_position(particles, weights)
