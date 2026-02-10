@@ -117,15 +117,15 @@ def initial_drawing(particles):
 Main body
 """
 
-particles = np.array([ROBOT_START_POS] * NUM_PARTICLES)
+# particles = np.array([ROBOT_START_POS] * NUM_PARTICLES)
 
-initial_drawing(particles)
-print_formatted_robot_pos(particles)
+# initial_drawing(particles)
+# print_formatted_robot_pos(particles)
 
-for _ in range(4):
-    for _ in range(4):
-        time.sleep(1)
-        print("Moving forward 100")
-        particles = apply_all_forward(particles, 100)
-    print("Turning -90 degrees")
-    particles = apply_all_turn(particles, -90)
+# for _ in range(4):
+#     for _ in range(4):
+#         time.sleep(1)
+#         print("Moving forward 100")
+#         particles = apply_all_forward(particles, 100)
+#     print("Turning -90 degrees")
+#     particles = apply_all_turn(particles, -90)
