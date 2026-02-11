@@ -18,9 +18,10 @@ def navigate_to_waypoint(waypoint, particles, weights):
     print("distance: ", distance)
 
     phi = np.rad2deg(np.arctan((w_y - robot_y) / (w_x - robot_x)))
-    print("turn: ", -phi-robot_theta)
+    print("phi: ", phi)
+    print("turn: ", phi-robot_theta)
 
-    particles = turnAntiClockwise(particles, phi+robot_theta)
+    particles = turnAntiClockwise(particles, phi-robot_theta)
     particles = forward(particles, distance)
 
     return particles
@@ -54,7 +55,7 @@ try:
     # Initial motor limits (will be updated in forward() and turnAntiClockwise())
     BP.set_motor_limits(LEFT_MOTOR_PORT, 50, MOVEMENT_SPEED)
     BP.set_motor_limits(RIGHT_MOTOR_PORT, 50, MOVEMENT_SPEED)
-    
+
     particles = navigate_to_waypoint((0, 0), particles, weights)
 
 finally: # at the end of everything, even with exception.
