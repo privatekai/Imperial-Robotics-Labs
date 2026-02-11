@@ -95,10 +95,10 @@ def forward(particles, distance: float):
         BP.set_motor_position(LEFT_MOTOR_PORT, target)
         BP.set_motor_position(RIGHT_MOTOR_PORT, target)
 
+        wait_for_motor_position(target, target)
+
         # Update particles
         particles = apply_all_forward(particles, distance)
-
-        wait_for_motor_position(target, target)
 
         time.sleep(MINI_WAIT_TIME)  # Small pause after reaching target
         print("Forward movement completed\n")
@@ -146,10 +146,10 @@ def turnAntiClockwise(particles, angle: float):
         BP.set_motor_position(LEFT_MOTOR_PORT, left_target)
         BP.set_motor_position(RIGHT_MOTOR_PORT, right_target)
 
+        wait_for_motor_position(left_target, right_target)
+
         # Update particles
         particles = apply_all_turn(particles, angle)
-
-        wait_for_motor_position(left_target, right_target)
 
         time.sleep(MINI_WAIT_TIME)  # Small pause after reaching target
         print("Turn completed\n")
