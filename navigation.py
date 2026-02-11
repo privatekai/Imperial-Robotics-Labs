@@ -22,6 +22,8 @@ def navigate_to_waypoint(waypoint, particles, weights):
 
     print("facing_target_rad:", np.arctan((w_y - robot_y)/(w_x - robot_x)))
     facing_target = np.rad2deg(np.arctan((w_y - robot_y) / (w_x - robot_x)))
+    if (w_x - robot_x) < 0:
+        facing_target += 180
     print("facing_target: ", facing_target)
     print("turn: ", facing_target-robot_facing)
 
