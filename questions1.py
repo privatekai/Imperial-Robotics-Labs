@@ -144,22 +144,22 @@ def turnClockwise(angle: float):
     except IOError as error:
         print("IOError in turnClockwise: %s" % error)
 
-try:
-    try:
-        BP.offset_motor_encoder(LEFT_MOTOR_PORT, BP.get_motor_encoder(LEFT_MOTOR_PORT)) # reset encoder A
-        BP.offset_motor_encoder(RIGHT_MOTOR_PORT, BP.get_motor_encoder(RIGHT_MOTOR_PORT)) # reset encoder D
-    except IOError as error:
-        print(error)
+# try:
+#     try:
+#         BP.offset_motor_encoder(LEFT_MOTOR_PORT, BP.get_motor_encoder(LEFT_MOTOR_PORT)) # reset encoder A
+#         BP.offset_motor_encoder(RIGHT_MOTOR_PORT, BP.get_motor_encoder(RIGHT_MOTOR_PORT)) # reset encoder D
+#     except IOError as error:
+#         print(error)
     
-    # Initial motor limits (will be updated in forward() and turnClockwise())
-    BP.set_motor_limits(LEFT_MOTOR_PORT, 50, MOVEMENT_SPEED)
-    BP.set_motor_limits(RIGHT_MOTOR_PORT, 50, MOVEMENT_SPEED)
+#     # Initial motor limits (will be updated in forward() and turnClockwise())
+#     BP.set_motor_limits(LEFT_MOTOR_PORT, 50, MOVEMENT_SPEED)
+#     BP.set_motor_limits(RIGHT_MOTOR_PORT, 50, MOVEMENT_SPEED)
 
-    count = 0
-    while (count < 4):
-        count += 1
-        forward(400)
-        turnClockwise(-90)
+#     count = 0
+#     while (count < 4):
+#         count += 1
+#         forward(400)
+#         turnClockwise(-90)
 
-except KeyboardInterrupt: # except the program gets interrupted by Ctrl+C on the keyboard.
-    BP.reset_all()        # Unconfigure the sensors, disable the motors, and restore the LED to the control of the BrickPi3 firmware.
+# except KeyboardInterrupt: # except the program gets interrupted by Ctrl+C on the keyboard.
+#     BP.reset_all()        # Unconfigure the sensors, disable the motors, and restore the LED to the control of the BrickPi3 firmware.
