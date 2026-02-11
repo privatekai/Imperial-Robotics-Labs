@@ -23,12 +23,18 @@ Helper functions!
 """
 
 def real_to_screen(particle):
+    """
+    Converts the robot's world coordinates to the drawn screen coordinates.
+    """
     x, y, theta = particle
     x = ((x / SQUARE_REAL_SIZE) * SQUARE_DRAW_SIZE) + SQUARE_X_OFFSET
     y = ((y / SQUARE_REAL_SIZE) * SQUARE_DRAW_SIZE) + SQUARE_Y_OFFSET + SQUARE_DRAW_SIZE
     return (x, y, theta)
 
 def robot_position(particles, weights):
+    """
+    Takes the average of the world coordinate particles to give an estimate of the robot's real coordinates.
+    """
     x, y, theta = (0, 0, 0)
     for i in range(NUM_PARTICLES):
         x += particles[i][0] * weights[i]

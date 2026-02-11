@@ -20,8 +20,8 @@ def navigate_to_waypoint(waypoint, particles, weights):
     phi = np.rad2deg(np.arctan((w_y - robot_y) / (w_x - robot_x)))
     print("turn: ", -phi-robot_theta)
 
-    particles = turnAntiClockwise(particles, phi+robot_theta)
-    particles = forward(particles, distance)
+    #particles = turnAntiClockwise(particles, phi+robot_theta)
+    #particles = forward(particles, distance)
 
     return particles
 
