@@ -62,7 +62,7 @@ try:
     BP.set_motor_limits(LEFT_MOTOR_PORT, 50, MOVEMENT_SPEED)
     BP.set_motor_limits(RIGHT_MOTOR_PORT, 50, MOVEMENT_SPEED)
 
-    particles = navigate_to_waypoint((0, 0), particles, weights)
+    particles = navigate_to_waypoint((400, 400), particles, weights)
 
 finally: # at the end of everything, even with exception.
     BP.reset_all()        # Unconfigure the sensors, disable the motors, and restore the LED to the control of the BrickPi3 firmware.
