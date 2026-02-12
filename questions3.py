@@ -110,19 +110,20 @@ def forward(particles, distance: float):
 
 
 
-def turnClockwise(particles, angle: float):
+def turnAntiClockwise(particles, angle: float):
     """
     Turn the robot on the spot around its center (between the wheels).
+    Positive angle = anticlockwise turn (standard math convention: 0°=right, 90°=up).
     For differential drive turning on the spot:
     - Each wheel travels in an arc with radius = WHEELBASE_WIDTH / 2
     - Arc length = angle_radians * radius
     """
     # Convert angle to radians
     angle_rad = angle * PI / 180.0
-    
+
     # Calculate arc length each wheel must travel (radius = half wheelbase)
     arc_length = angle_rad * (WHEELBASE_WIDTH + ANGLE_ERROR) / 2.0
-    
+
     # Convert arc length to encoder degrees
     offset = (arc_length / WHEEL_CIRCUMFERENCE) * 360.0
 
@@ -130,16 +131,16 @@ def turnClockwise(particles, angle: float):
         # Reset both encoders to 0 for clean starting positions
         BP.offset_motor_encoder(LEFT_MOTOR_PORT, BP.get_motor_encoder(LEFT_MOTOR_PORT))
         BP.offset_motor_encoder(RIGHT_MOTOR_PORT, BP.get_motor_encoder(RIGHT_MOTOR_PORT))
-        
+
         # Set speed limits for turning
         BP.set_motor_limits(LEFT_MOTOR_PORT, 50, TURNING_SPEED)
         BP.set_motor_limits(RIGHT_MOTOR_PORT, 50, TURNING_SPEED)
 
-        # Left wheel goes forward, right wheel goes backward (for clockwise turn)
-        left_target = offset
-        right_target = -offset
+        # Left wheel backward, right wheel forward (for anticlockwise turn)
+        left_target = -offset
+        right_target = offset
 
-        print("Turning %f degrees\nLeft target: %f, Right target: %f" %
+        print("Turning %f degrees anticlockwise\nLeft target: %f, Right target: %f" %
               (angle, left_target, right_target))
 
         # Set both motor positions (opposite directions for turning on the spot)
@@ -157,7 +158,7 @@ def turnClockwise(particles, angle: float):
         return particles
 
     except IOError as error:
-        print("IOError in turnClockwise: %s" % error)
+        print("IOError in turnAntiClockwise: %s" % error)
 
 if __name__ == "__main__":
     try:
@@ -181,7 +182,7 @@ if __name__ == "__main__":
         for _ in range(4):
             for _ in range(4):
                 particles = forward(particles, 100)
-            particles = turnClockwise(particles, -90)
+            particles = turnAntiClockwise(particles, 90)
         # particles = navigate_to_waypoint((80, 40), particles, weights)
 
     except KeyboardInterrupt: # except the program gets interrupted by Ctrl+C on the keyboard.

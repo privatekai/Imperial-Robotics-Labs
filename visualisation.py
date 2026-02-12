@@ -25,10 +25,12 @@ Helper functions!
 def real_to_screen(particle):
     """
     Converts the robot's world coordinates to the drawn screen coordinates.
+    Display convention: negative y is up (flipped from reality where positive y is up).
     """
     x, y, theta = particle
     x = ((x / SQUARE_REAL_SIZE) * SQUARE_DRAW_SIZE) + SQUARE_X_OFFSET
-    y = ((y / SQUARE_REAL_SIZE) * SQUARE_DRAW_SIZE) + SQUARE_Y_OFFSET + SQUARE_DRAW_SIZE
+    # Flip y-axis for display: negative y displays as up
+    y = ((-y / SQUARE_REAL_SIZE) * SQUARE_DRAW_SIZE) + SQUARE_Y_OFFSET + SQUARE_DRAW_SIZE
     return (x, y, theta)
 
 def robot_position(particles, weights):
