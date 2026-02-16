@@ -6,15 +6,17 @@ import time
 import random
 import math
 import numpy as np
+from scipy.stats import norm
 
 # particle constants
 NUM_PARTICLES = 100
 ROBOT_START_POS = (84, 30, 0, 1/NUM_PARTICLES)
 
 # distribution constants
-E_MEAN, E_VAR = 0, 10 # in mm
+E_MEAN, E_VAR = 0, 10 # in cm
 F_MEAN, F_VAR = 0, 1 # in degrees
 G_MEAN, G_VAR = 0, 1 # in degrees
+SONAR_VAR = 1 # in cm
 
 # waypoints (in cm)
 WAYPOINTS = [
@@ -53,38 +55,6 @@ def calcW():
 
 def calcTheta():
     return random.randint(0,360)
-
-"""
-Movement Functions!
-"""
-
-def apply_forward(particle, distance):
-    """
-    particle: the particle to to move forward
-    distance: the distance (in cm) that the robot moves forward
-    """    
-    x, y, theta, w = particle
-
-    angle = np.deg2rad(theta)
-    x_rand = np.random.normal(E_MEAN, E_VAR)
-    y_rand = np.random.normal(E_MEAN, E_VAR)
-    theta_rand = np.random.normal(F_MEAN, F_VAR)
-    
-    x_new = x + (distance + x_rand) * np.cos(angle)
-    y_new = y + (distance + y_rand) * np.sin(angle)
-    theta_new = theta + theta_rand
-
-    return (x_new, y_new, theta_new, w)
-
-def apply_turn(particle, angle):
-    """
-    particle: the particle to to move forward
-    angle: the angle (in degrees) that the robot rotates
-    """
-    x, y, theta, w = particle
-    theta_rand = np.random.normal(G_MEAN, G_VAR)
-
-    return (x, y, theta + angle + theta_rand, w)
 
 """ 
 Data Structures! 
@@ -148,13 +118,74 @@ class Particles:
         """
         distance: the distance (in cm) that the robot moves forward
         """
-        self.data = [apply_forward(particle, distance) for particle in self.data]
+        self.data = [Particles.__apply_forward(particle, distance) for particle in self.data]
     
     def turn(self, angle):
         """
         angle: the angle (in degrees) that the robot rotates
         """
-        self.data = [apply_turn(particle, angle) for particle in self.data]
+        self.data = [Particles.__apply_turn(particle, angle) for particle in self.data]
+        
+    def __apply_forward(particle, distance):
+        """
+        particle: the particle to move forward
+        distance: the distance (in cm) that the robot moves forward
+        """    
+        x, y, theta, weight = particle
+
+        angle = np.deg2rad(theta)
+        x_rand = np.random.normal(E_MEAN, E_VAR)
+        y_rand = np.random.normal(E_MEAN, E_VAR)
+        theta_rand = np.random.normal(F_MEAN, F_VAR)
+        
+        x_new = x + (distance + x_rand) * np.cos(angle)
+        y_new = y + (distance + y_rand) * np.sin(angle)
+        theta_new = theta + theta_rand
+
+        return (x_new, y_new, theta_new, w)
+
+    def __apply_turn(particle, angle):
+        """
+        particle: the particle to move forward
+        angle: the angle (in degrees) that the robot rotates
+        """
+        x, y, theta, w = particle
+        theta_rand = np.random.normal(G_MEAN, G_VAR)
+
+        return (x, y, theta + angle + theta_rand, w)
+
+    def __update_weight(particle, measured_distance):
+        """
+        particle: the particle
+        measured_distance: the distance measured from the sonar
+        """
+        x, y, theta, w = particle
+        
+        # calculate the particle's distance from each wall and take the closest one.
+        minimum_distance_to_wall = float("inf") 
+        for ind, wall in enumerate(WALLS):
+            a_x, a_y, b_x, b_y = wall
+            
+            distance_to_wall = (b_y - a_x) * (a_x - x) - (b_x - a_x) * (a_y - y)
+            distance_to_wall /= (b_y - a_y) * math.cos(theta) - (b_x - a_x) * math.sin(theta)
+            
+            # check if the intersection is between the endpoints of the wall.
+            x_intersection = x + distance_to_wall * math.cos(theta)
+            y_intersection = y + distance_to_wall * math.sin(theta)
+            min_x, max_x = min(a_x, b_x), max(a_x, b_x)
+            min_y, max_y = min(a_y, b_y), max(a_y, b_y)
+            if x_intersection < min_x or max_x < x_intersection or y_intersection < min_y or max_y < y_intersection:
+                continue
+            
+            # change minimum distance if this wall is closer
+            # distance must be positive because the wall should be in front of the robot
+            if distance_to_wall < 0 or minimum_distance_to_wall < distance_to_wall:
+                continue
+            minimum_distance_to_wall = distance_to_wall
+        
+        delta_distance = measured_distance - minimum_distance_to_wall
+        new_weight = norm.pdf(delta_distance, scale=SONAR_VAR**0.5) # we take the root of the variance as scale corresponds to standard deviation
+        return (x, y, theta, new_weight)
 
 canvas = Canvas()	# global canvas we are going to draw on
 
