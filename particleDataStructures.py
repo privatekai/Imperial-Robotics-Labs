@@ -29,6 +29,18 @@ WAYPOINTS = [
     (84, 30),
 ]
 
+# Walls (in cm)
+WALLS = [
+    (0,0,0,168),        # a: O to A
+    (0,168,84,168),     # b: A to B
+    (84,126,84,210),    # c: C to D
+    (84,210,168,210),   # d: D to E
+    (168,210,168,84),   # e: E to F
+    (168,84,210,84),    # f: F to G
+    (210,84,210,0),     # g: G to H
+    (210,0,0,0),        # h: H to O
+]
+
 # Functions to generate some dummy particles data:
 def calcX():
     return random.gauss(80,3) + 70*(math.sin(t)) # in cm
@@ -147,23 +159,8 @@ class Particles:
 canvas = Canvas()	# global canvas we are going to draw on
 
 mymap = Map()
-# Definitions of walls
-# a: O to A
-# b: A to B
-# c: C to D
-# d: D to E
-# e: E to F
-# f: F to G
-# g: G to H
-# h: H to O
-mymap.add_wall((0,0,0,168))        # a
-mymap.add_wall((0,168,84,168))     # b
-mymap.add_wall((84,126,84,210))    # c
-mymap.add_wall((84,210,168,210))   # d
-mymap.add_wall((168,210,168,84))   # e
-mymap.add_wall((168,84,210,84))    # f
-mymap.add_wall((210,84,210,0))     # g
-mymap.add_wall((210,0,0,0))        # h
+for wall in WALLS:
+    mymap.add_wall(wall)
 mymap.draw()
 
 particles = Particles()
