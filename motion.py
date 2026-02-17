@@ -3,8 +3,8 @@ from __future__ import division       #                           ''
 
 import time     # import the time library for the sleep function
 import brickpi3
-from visualisation import NUM_PARTICLES, ROBOT_START_POS, apply_all_forward, apply_all_turn, initial_drawing # import the BrickPi3 drivers
 import numpy as np
+from particleDataStructures import WALLS, Canvas, Map, Particles
 
 # UNITS ARE MILLIMETRES
 
@@ -98,7 +98,7 @@ def forward(particles, distance: float):
         wait_for_motor_position(target, target)
 
         # Update particles
-        particles = apply_all_forward(particles, distance)
+        particles = particles.forward(distance)
 
         time.sleep(MINI_WAIT_TIME)  # Small pause after reaching target
         print("Forward movement completed\n")
@@ -150,7 +150,7 @@ def turnAntiClockwise(particles, angle: float):
         wait_for_motor_position(left_target, right_target)
 
         # Update particles
-        particles = apply_all_turn(particles, angle)
+        particles = particles.turn(angle)
 
         time.sleep(MINI_WAIT_TIME)  # Small pause after reaching target
         print("Turn completed\n")
@@ -172,10 +172,14 @@ if __name__ == "__main__":
         BP.set_motor_limits(LEFT_MOTOR_PORT, 50, MOVEMENT_SPEED)
         BP.set_motor_limits(RIGHT_MOTOR_PORT, 50, MOVEMENT_SPEED)
 
-        particles = np.array([ROBOT_START_POS] * NUM_PARTICLES)
-        weights = np.array([1/NUM_PARTICLES] * NUM_PARTICLES)
-        
-        initial_drawing(particles)
+        canvas = Canvas()	# global canvas we are going to draw on
+
+        mymap = Map()
+        for wall in WALLS:
+            mymap.add_wall(wall)
+        mymap.draw()
+
+        particles = Particles()
 
         time.sleep(1)
 
