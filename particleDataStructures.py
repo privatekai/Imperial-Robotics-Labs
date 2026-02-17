@@ -19,7 +19,7 @@ BP = brickpi3.BrickPi3() # Create an instance of the BrickPi3 class. BP will be 
 # BP.set_sensor_type configures the BrickPi3 for a specific sensor.
 # BP.PORT_1 specifies that the sensor will be on sensor port 1.
 # BP.Sensor_TYPE.EV3_ULTRASONIC_CM specifies that the sensor will be an EV3 ultrasonic sensor.
-BP.set_sensor_type(BP.PORT_4, BP.SENSOR_TYPE.EV3_ULTRASONIC_CM) # Configure for an EV3 ultrasonic sensor.
+BP.set_sensor_type(BP.PORT_4, BP.SENSOR_TYPE.NXT_ULTRASONIC) # Configure for an EV3 ultrasonic sensor.
 
 # particle constants
 NUM_PARTICLES = 100
