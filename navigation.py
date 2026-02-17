@@ -1,4 +1,5 @@
 import time
+from math import sqrt, atan, degrees
 from motion import BP, LEFT_MOTOR_PORT, MOVEMENT_SPEED, RIGHT_MOTOR_PORT, forward, turnAntiClockwise
 from particleDataStructures import WALLS, Canvas, Map, Particles
 
@@ -16,11 +17,11 @@ def navigate_to_waypoint(waypoint, particles):
     print("w_x: ", w_x)
     print("w_y: ", w_y)
 
-    distance = ((w_x - robot_x)**2 + (w_y - robot_y)**2).sqrt()
+    distance = sqrt((w_x - robot_x)**2 + (w_y - robot_y)**2)
     print("distance: ", distance)
 
-    print("facing_target_rad:", ((w_y - robot_y)/(w_x - robot_x)).atan())
-    facing_target = (w_y - robot_y) / (w_x - robot_x).atan().degrees()
+    print("facing_target_rad:", atan((w_y - robot_y)/(w_x - robot_x)))
+    facing_target = degrees(atan((w_y - robot_y) / (w_x - robot_x)))
     if (w_x - robot_x) < 0:
         facing_target += 180
     print("facing_target: ", facing_target)
