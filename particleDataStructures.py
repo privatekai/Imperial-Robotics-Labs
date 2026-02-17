@@ -203,7 +203,7 @@ class Particles:
         return (x, y, theta, new_weight)
     
     def __normalise_particles(self):
-        total_weight = sum(weight for (x, y, theta, weight) in self.data)
+        total_weight = sum(weight for (_, _, _, weight) in self.data)
         return [(x, y, theta, weight / total_weight) for (x, y, theta, weight) in self.data]
     
     def __resample_particles(self):
@@ -225,7 +225,7 @@ class Particles:
     
     def __MCL_update(self):
         try:
-            measured_distance = BP.get_sensor(BP.PORT_1)
+            measured_distance = BP.get_sensor(BP.PORT_4)
             print(measured_distance)                         # print the distance in CM
         except brickpi3.SensorError as error:
             print(error)
