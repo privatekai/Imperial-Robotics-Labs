@@ -1,7 +1,7 @@
 import time
 from math import sqrt, atan, degrees
 from motion import BP, LEFT_MOTOR_PORT, MOVEMENT_SPEED, RIGHT_MOTOR_PORT, forward, turnAntiClockwise
-from particleDataStructures import WALLS, Canvas, Map, Particles
+from particleDataStructures import WALLS, WAYPOINTS, Canvas, Map, Particles
 
 def navigate_to_waypoint(waypoint, particles):
     # mean of the particles X, Y and theta
@@ -37,6 +37,10 @@ def navigate_to_waypoint(waypoint, particles):
     particles = forward(particles, distance)
 
     return particles
+
+def drive_around_map(particles):
+    for waypoint in WAYPOINTS:
+        navigate_to_waypoint(waypoint, particles)
 
 if __name__ == "__main__":
     try:
@@ -74,7 +78,7 @@ if __name__ == "__main__":
         #     print("Enter a y coordinate: ")
         #     y_coord = int(input())
 
-        particles = navigate_to_waypoint((10, 0), particles)
+        drive_around_map(particles)
 
     finally: # at the end of everything, even with exception.
         BP.reset_all()        # Unconfigure the sensors, disable the motors, and restore the LED to the control of the BrickPi3 firmware.
