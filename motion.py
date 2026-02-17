@@ -3,7 +3,6 @@ from __future__ import division       #                           ''
 
 import time     # import the time library for the sleep function
 import brickpi3
-import numpy as np
 from particleDataStructures import WALLS, Canvas, Map, Particles
 
 # UNITS ARE MILLIMETRES

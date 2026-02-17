@@ -1,5 +1,4 @@
 import time
-import numpy as np
 from motion import BP, LEFT_MOTOR_PORT, MOVEMENT_SPEED, RIGHT_MOTOR_PORT, forward, turnAntiClockwise
 from particleDataStructures import WALLS, Canvas, Map, Particles
 
@@ -17,11 +16,11 @@ def navigate_to_waypoint(waypoint, particles):
     print("w_x: ", w_x)
     print("w_y: ", w_y)
 
-    distance = np.sqrt((w_x - robot_x)**2 + (w_y - robot_y)**2)
+    distance = ((w_x - robot_x)**2 + (w_y - robot_y)**2).sqrt()
     print("distance: ", distance)
 
-    print("facing_target_rad:", np.arctan((w_y - robot_y)/(w_x - robot_x)))
-    facing_target = np.rad2deg(np.arctan((w_y - robot_y) / (w_x - robot_x)))
+    print("facing_target_rad:", ((w_y - robot_y)/(w_x - robot_x)).atan())
+    facing_target = (w_y - robot_y) / (w_x - robot_x).atan().degrees()
     if (w_x - robot_x) < 0:
         facing_target += 180
     print("facing_target: ", facing_target)
@@ -61,18 +60,20 @@ if __name__ == "__main__":
 
         time.sleep(1)
 
-        print("Enter an x coordinate: ")
-        x_coord = int(input())
-        print("Enter a y coordinate: ")
-        y_coord = int(input())
+        # print("Enter an x coordinate: ")
+        # x_coord = int(input())
+        # print("Enter a y coordinate: ")
+        # y_coord = int(input())
 
-        while x_coord != -1: 
-            particles = navigate_to_waypoint((x_coord, y_coord), particles)
+        # while x_coord != -1: 
+        #     particles = navigate_to_waypoint((x_coord, y_coord), particles)
 
-            print("Enter an x coordinate: ")
-            x_coord = int(input())
-            print("Enter a y coordinate: ")
-            y_coord = int(input())
+        #     print("Enter an x coordinate: ")
+        #     x_coord = int(input())
+        #     print("Enter a y coordinate: ")
+        #     y_coord = int(input())
+
+        particles = navigate_to_waypoint((10, 0), particles)
 
     finally: # at the end of everything, even with exception.
         BP.reset_all()        # Unconfigure the sensors, disable the motors, and restore the LED to the control of the BrickPi3 firmware.

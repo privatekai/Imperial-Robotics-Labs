@@ -1,6 +1,7 @@
+#!/usr/bin/env python 
+
 from __future__ import print_function # use python 3 syntax but make it compatible with python 2
 from __future__ import division
-#!/usr/bin/env python 
 
 # Some suitable functions and data structures for drawing a map and particles
 
