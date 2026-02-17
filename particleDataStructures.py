@@ -8,6 +8,19 @@ import math
 import numpy as np
 from scipy.stats import norm
 
+from __future__ import print_function # use python 3 syntax but make it compatible with python 2
+from __future__ import division
+
+import brickpi3 # import the BrickPi3 drivers
+
+BP = brickpi3.BrickPi3() # Create an instance of the BrickPi3 class. BP will be the BrickPi3 object.
+
+# Configure for an EV3 color sensor.
+# BP.set_sensor_type configures the BrickPi3 for a specific sensor.
+# BP.PORT_1 specifies that the sensor will be on sensor port 1.
+# BP.Sensor_TYPE.EV3_ULTRASONIC_CM specifies that the sensor will be an EV3 ultrasonic sensor.
+BP.set_sensor_type(BP.PORT_4, BP.SENSOR_TYPE.EV3_ULTRASONIC_CM) # Configure for an EV3 ultrasonic sensor.
+
 # particle constants
 NUM_PARTICLES = 100
 ROBOT_START_POS = (84, 30, 0, 1/NUM_PARTICLES)
@@ -119,12 +132,14 @@ class Particles:
         distance: the distance (in cm) that the robot moves forward
         """
         self.data = [Particles.__apply_forward(particle, distance) for particle in self.data]
+        self.__MCL_update()
     
     def turn(self, angle):
         """
         angle: the angle (in degrees) that the robot rotates
         """
         self.data = [Particles.__apply_turn(particle, angle) for particle in self.data]
+        self.__MCL_update()
         
     def __apply_forward(particle, distance):
         """
@@ -186,19 +201,54 @@ class Particles:
         delta_distance = measured_distance - minimum_distance_to_wall
         new_weight = norm.pdf(delta_distance, scale=SONAR_VAR**0.5) # we take the root of the variance as scale corresponds to standard deviation
         return (x, y, theta, new_weight)
+    
+    def __normalise_particles(self):
+        total_weight = sum(weight for (x, y, theta, weight) in self.data)
+        return [(x, y, theta, weight / total_weight) for (x, y, theta, weight) in self.data]
+    
+    def __resample_particles(self):
+        cumulative_weight = 0.0
+        cumulative_weight_array = []
+        for (x, y, theta, weight) in self.data:
+            cumulative_weight += weight
+            cumulative_weight_array.append((x, y, theta, cumulative_weight))
 
-canvas = Canvas()	# global canvas we are going to draw on
+        sampled_array = []
+        for _ in range(100):
+            generated_weight = random.uniform(0, 1)
+            for (x, y, theta, cumulative_weight) in cumulative_weight_array:
+                if generated_weight <= cumulative_weight:
+                    sampled_array.append((x, y, theta, 1/NUM_PARTICLES))
+                    break
+        
+        return sampled_array
+    
+    def __MCL_update(self):
+        try:
+            measured_distance = BP.get_sensor(BP.PORT_1)
+            print(measured_distance)                         # print the distance in CM
+        except brickpi3.SensorError as error:
+            print(error)
+        
+        time.sleep(0.02)
+        self.data = [Particles.__update_weight(particle, measured_distance) for particle in self.data]
+        self.data = Particles.__normalise_particles()
+        self.data = Particles.__resample_particles()
+            
 
-mymap = Map()
-for wall in WALLS:
-    mymap.add_wall(wall)
-mymap.draw()
+if __name__ == "__main__":
+    canvas = Canvas()	# global canvas we are going to draw on
 
-particles = Particles()
+    mymap = Map()
+    for wall in WALLS:
+        mymap.add_wall(wall)
+    mymap.draw()
 
-t = 0
-while True:
-    particles.update()
-    particles.draw()
-    t += 0.05
-    time.sleep(0.05)
+    particles = Particles()
+
+    t = 0
+    while True:
+        particles.update()
+        particles.draw()
+        t += 0.05
+        time.sleep(0.05)
