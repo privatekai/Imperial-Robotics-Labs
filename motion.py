@@ -97,12 +97,10 @@ def forward(particles, distance: float):
         wait_for_motor_position(target, target)
 
         # Update particles
-        particles = particles.forward(distance/10)
+        particles.forward(distance/10)
 
         time.sleep(MINI_WAIT_TIME)  # Small pause after reaching target
         print("Forward movement completed\n")
-
-        return particles
 
     except IOError as error:
         print("IOError in forward: %s" % error)
@@ -149,12 +147,10 @@ def turnAntiClockwise(particles, angle: float):
         wait_for_motor_position(left_target, right_target)
 
         # Update particles
-        particles = particles.turn(angle)
+        particles.turn(angle)
 
         time.sleep(MINI_WAIT_TIME)  # Small pause after reaching target
         print("Turn completed\n")
-
-        return particles
 
     except IOError as error:
         print("IOError in turnAntiClockwise: %s" % error)
@@ -184,9 +180,9 @@ if __name__ == "__main__":
 
         for _ in range(4):
             for _ in range(4):
-                particles = forward(particles, 100)
-            particles = turnAntiClockwise(particles, 90)
-        # particles = navigate_to_waypoint((80, 40), particles, weights)
+                forward(particles, 100)
+            turnAntiClockwise(particles, 90)
+        # navigate_to_waypoint((80, 40), particles, weights)
 
     finally: # except the program gets interrupted by Ctrl+C on the keyboard.
         BP.reset_all()        # Unconfigure the sensors, disable the motors, and restore the LED to the control of the BrickPi3 firmware.

@@ -33,8 +33,8 @@ def navigate_to_waypoint(waypoint, particles):
     elif total_target < -180:
         total_target += 360
 
-    particles = turnAntiClockwise(particles, total_target)
-    particles = forward(particles, distance)
+    turnAntiClockwise(particles, total_target)
+    forward(particles, distance)
 
     return particles
 
@@ -71,7 +71,7 @@ if __name__ == "__main__":
         # y_coord = int(input())
 
         # while x_coord != -1: 
-        #     particles = navigate_to_waypoint((x_coord, y_coord), particles)
+        #     navigate_to_waypoint((x_coord, y_coord), particles)
 
         #     print("Enter an x coordinate: ")
         #     x_coord = int(input())
