@@ -140,6 +140,18 @@ class Particles:
         """
         self.data = [Particles.__apply_turn(particle, angle) for particle in self.data]
         self.__MCL_update()
+
+    def robot_position(self):
+        """
+        Takes the average of the world coordinate particles to give an estimate of the robot's real coordinates.
+        """
+        x, y, theta = (0, 0, 0)
+        for _x, _y, _theta, _w in self.data:
+            x += _x * _w
+            y += _y * _w
+            theta += _theta * _w
+
+        return (x, y, theta)
         
     def __apply_forward(particle, distance):
         """
