@@ -7,8 +7,6 @@ from __future__ import division
 import time
 import random
 import math
-import numpy as np
-from scipy.stats import norm
 
 import brickpi3 # import the BrickPi3 drivers
 
@@ -67,6 +65,9 @@ def calcW():
 
 def calcTheta():
     return random.randint(0,360)
+
+def normPdf(x, variance):
+    return math.exp((-x**2) / (2 * variance)) / math.sqrt((2 * math.pi * variance)) 
 
 """ 
 Data Structures! 
@@ -159,13 +160,13 @@ class Particles:
         new_data = []
         for x, y, theta, weight in self.data:
 
-            angle = np.deg2rad(theta)
-            x_rand = np.random.normal(E_MEAN, E_VAR)
-            y_rand = np.random.normal(E_MEAN, E_VAR)
-            theta_rand = np.random.normal(F_MEAN, F_VAR)
+            angle = math.radians(theta)
+            x_rand = math.random.gauss(E_MEAN, E_VAR**0.5)
+            y_rand = math.random.gauss(E_MEAN, E_VAR**0.5)
+            theta_rand = math.random.gauss(F_MEAN, F_VAR**0.5)
             
-            x_new = x + (distance + x_rand) * np.cos(angle)
-            y_new = y + (distance + y_rand) * np.sin(angle)
+            x_new = x + (distance + x_rand) * math.cos(angle)
+            y_new = y + (distance + y_rand) * math.sin(angle)
             theta_new = theta + theta_rand
 
             new_data.append((x_new, y_new, theta_new, weight))
@@ -177,7 +178,7 @@ class Particles:
         """
         new_data = []
         for x, y, theta, weight in self.data:
-            theta_rand = np.random.normal(G_MEAN, G_VAR)
+            theta_rand = math.random.gauss(G_MEAN, G_VAR**0.5)
             new_data.append((x, y, theta + angle + theta_rand, weight))
             
         return new_data
@@ -213,7 +214,7 @@ class Particles:
                 minimum_distance_to_wall = distance_to_wall
             
             delta_distance = measured_distance - minimum_distance_to_wall
-            new_weight = norm.pdf(delta_distance, scale=SONAR_VAR**0.5) # we take the root of the variance as scale corresponds to standard deviation
+            new_weight = normPdf(delta_distance, variance=SONAR_VAR) # we take the root of the variance as scale corresponds to standard deviation
             new_data.append((x, y, theta, new_weight))
             
         return new_data
