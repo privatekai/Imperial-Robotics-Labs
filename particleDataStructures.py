@@ -200,6 +200,8 @@ class Particles:
             minimum_distance_to_wall = float("inf") 
             for wall in WALLS:
                 a_x, a_y, b_x, b_y = wall
+
+                # TODO: divide by zero error
                 
                 distance_to_wall = (b_y - a_x) * (a_x - x) - (b_x - a_x) * (a_y - y)
                 distance_to_wall /= (b_y - a_y) * math.cos(theta) - (b_x - a_x) * math.sin(theta)
@@ -253,14 +255,14 @@ class Particles:
         except brickpi3.SensorError as error:
             print(error)
         
-        time.sleep(0.02)
+        time.sleep(0.5)
         self.data = self.__update_weight(measured_distance)
         self.draw()
-        time.sleep(0.05)
+        time.sleep(0.5)
         self.data = self.__normalise_particles()
         self.data = self.__resample_particles()
         self.draw()
-        time.sleep(0.05)
+        time.sleep(0.5)
             
 
 if __name__ == "__main__":
