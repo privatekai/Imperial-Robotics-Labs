@@ -1,5 +1,5 @@
 import time
-from math import sqrt, atan, degrees
+from math import floor, sqrt, atan, degrees
 from motion import BP, LEFT_MOTOR_PORT, MOVEMENT_SPEED, RIGHT_MOTOR_PORT, forward, turnAntiClockwise
 from particleDataStructures import WALLS, WAYPOINTS, Canvas, Map, Particles
 INTERVAL = 10
@@ -38,7 +38,7 @@ def navigate_to_waypoint(waypoint, particles):
     full_steps, remainder = divmod(distance, INTERVAL)
 
     # Move in intervals
-    for _ in range(full_steps):
+    for _ in range(floor(full_steps)):
         forward(particles, INTERVAL)
 
     # Move the remainder
