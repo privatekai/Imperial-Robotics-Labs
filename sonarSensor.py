@@ -6,8 +6,8 @@ from __future__ import division
 import brickpi3
 
 # Calibration constants (update these after running calibration)
-SCALE_CALIBRATED = 1.0000
-OFFSET_CALIBRATED = 0.0000
+SCALE_CALIBRATED = 1.0127
+OFFSET_CALIBRATED = 3.7975
 
 
 class SonarSensor:
