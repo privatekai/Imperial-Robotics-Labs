@@ -31,7 +31,7 @@ SONAR_VAR = 1 # in cm
 
 # waypoints (in cm)
 WAYPOINTS = [
-    (84, 30),
+    # (84, 30), Commenting out as this is the robot start pos
     (180, 30),
     (180, 54),
     (138, 54),
