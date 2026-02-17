@@ -51,12 +51,12 @@ if __name__ == "__main__":
 
         canvas = Canvas()	# global canvas we are going to draw on
 
-        mymap = Map()
+        mymap = Map(canvas)
         for wall in WALLS:
             mymap.add_wall(wall)
         mymap.draw()
 
-        particles = Particles()
+        particles = Particles(canvas)
 
         time.sleep(1)
 

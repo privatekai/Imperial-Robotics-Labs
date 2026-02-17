@@ -103,8 +103,9 @@ class Canvas:
 
 # A Map class containing walls
 class Map:
-    def __init__(self):
+    def __init__(self, canvas):
         self.walls = []
+        self.canvas = canvas
 
     def add_wall(self,wall):
         self.walls.append(wall)
@@ -114,19 +115,20 @@ class Map:
 
     def draw(self):
         for wall in self.walls:
-            canvas.drawLine(wall)
+            self.canvas.drawLine(wall)
 
 # Simple Particles set
 class Particles:
-    def __init__(self):
+    def __init__(self, canvas):
         self.n = NUM_PARTICLES 
-        self.data = []
+        self.data = [ROBOT_START_POS] * NUM_PARTICLES
+        self.canvas = canvas
 
     def update(self):
         self.data = [(calcX(), calcY(), calcTheta(), calcW()) for i in range(self.n)]
     
     def draw(self):
-        canvas.drawParticles(self.data)
+        self.canvas.drawParticles(self.data)
     
     def forward(self, distance):
         """
@@ -258,12 +260,12 @@ class Particles:
 if __name__ == "__main__":
     canvas = Canvas()	# global canvas we are going to draw on
 
-    mymap = Map()
+    mymap = Map(canvas)
     for wall in WALLS:
         mymap.add_wall(wall)
     mymap.draw()
 
-    particles = Particles()
+    particles = Particles(canvas)
 
     t = 0
     while True:
