@@ -131,14 +131,14 @@ class Particles:
         """
         distance: the distance (in cm) that the robot moves forward
         """
-        self.data = [Particles.__apply_forward(particle, distance) for particle in self.data]
+        self.data = self.__apply_forward(distance)
         self.__MCL_update()
     
     def turn(self, angle):
         """
         angle: the angle (in degrees) that the robot rotates
         """
-        self.data = [Particles.__apply_turn(particle, angle) for particle in self.data]
+        self.data = self.__apply_turn(angle)
         self.__MCL_update()
 
     def robot_position(self):
@@ -153,66 +153,71 @@ class Particles:
 
         return (x, y, theta)
         
-    def __apply_forward(particle, distance):
+    def __apply_forward(self, distance):
         """
-        particle: the particle to move forward
         distance: the distance (in cm) that the robot moves forward
         """    
-        x, y, theta, weight = particle
+        new_data = []
+        for x, y, theta, weight in self.data:
 
-        angle = np.deg2rad(theta)
-        x_rand = np.random.normal(E_MEAN, E_VAR)
-        y_rand = np.random.normal(E_MEAN, E_VAR)
-        theta_rand = np.random.normal(F_MEAN, F_VAR)
-        
-        x_new = x + (distance + x_rand) * np.cos(angle)
-        y_new = y + (distance + y_rand) * np.sin(angle)
-        theta_new = theta + theta_rand
+            angle = np.deg2rad(theta)
+            x_rand = np.random.normal(E_MEAN, E_VAR)
+            y_rand = np.random.normal(E_MEAN, E_VAR)
+            theta_rand = np.random.normal(F_MEAN, F_VAR)
+            
+            x_new = x + (distance + x_rand) * np.cos(angle)
+            y_new = y + (distance + y_rand) * np.sin(angle)
+            theta_new = theta + theta_rand
 
-        return (x_new, y_new, theta_new, w)
+            new_data.append((x_new, y_new, theta_new, weight))
+        return new_data
 
-    def __apply_turn(particle, angle):
+    def __apply_turn(self, angle):
         """
-        particle: the particle to move forward
         angle: the angle (in degrees) that the robot rotates
         """
-        x, y, theta, w = particle
-        theta_rand = np.random.normal(G_MEAN, G_VAR)
+        new_data = []
+        for x, y, theta, weight in self.data:
+            theta_rand = np.random.normal(G_MEAN, G_VAR)
+            new_data.append((x, y, theta + angle + theta_rand, weight))
+            
+        return new_data
 
-        return (x, y, theta + angle + theta_rand, w)
-
-    def __update_weight(particle, measured_distance):
+    def __update_weight(self, measured_distance):
         """
         particle: the particle
         measured_distance: the distance measured from the sonar
         """
-        x, y, theta, w = particle
-        
-        # calculate the particle's distance from each wall and take the closest one.
-        minimum_distance_to_wall = float("inf") 
-        for ind, wall in enumerate(WALLS):
-            a_x, a_y, b_x, b_y = wall
+        new_data = []
+        for x, y, theta, _ in self.data:
             
-            distance_to_wall = (b_y - a_x) * (a_x - x) - (b_x - a_x) * (a_y - y)
-            distance_to_wall /= (b_y - a_y) * math.cos(theta) - (b_x - a_x) * math.sin(theta)
+            # calculate the particle's distance from each wall and take the closest one.
+            minimum_distance_to_wall = float("inf") 
+            for wall in WALLS:
+                a_x, a_y, b_x, b_y = wall
+                
+                distance_to_wall = (b_y - a_x) * (a_x - x) - (b_x - a_x) * (a_y - y)
+                distance_to_wall /= (b_y - a_y) * math.cos(theta) - (b_x - a_x) * math.sin(theta)
+                
+                # check if the intersection is between the endpoints of the wall.
+                x_intersection = x + distance_to_wall * math.cos(theta)
+                y_intersection = y + distance_to_wall * math.sin(theta)
+                min_x, max_x = min(a_x, b_x), max(a_x, b_x)
+                min_y, max_y = min(a_y, b_y), max(a_y, b_y)
+                if x_intersection < min_x or max_x < x_intersection or y_intersection < min_y or max_y < y_intersection:
+                    continue
+                
+                # change minimum distance if this wall is closer
+                # distance must be positive because the wall should be in front of the robot
+                if distance_to_wall < 0 or minimum_distance_to_wall < distance_to_wall:
+                    continue
+                minimum_distance_to_wall = distance_to_wall
             
-            # check if the intersection is between the endpoints of the wall.
-            x_intersection = x + distance_to_wall * math.cos(theta)
-            y_intersection = y + distance_to_wall * math.sin(theta)
-            min_x, max_x = min(a_x, b_x), max(a_x, b_x)
-            min_y, max_y = min(a_y, b_y), max(a_y, b_y)
-            if x_intersection < min_x or max_x < x_intersection or y_intersection < min_y or max_y < y_intersection:
-                continue
+            delta_distance = measured_distance - minimum_distance_to_wall
+            new_weight = norm.pdf(delta_distance, scale=SONAR_VAR**0.5) # we take the root of the variance as scale corresponds to standard deviation
+            new_data.append((x, y, theta, new_weight))
             
-            # change minimum distance if this wall is closer
-            # distance must be positive because the wall should be in front of the robot
-            if distance_to_wall < 0 or minimum_distance_to_wall < distance_to_wall:
-                continue
-            minimum_distance_to_wall = distance_to_wall
-        
-        delta_distance = measured_distance - minimum_distance_to_wall
-        new_weight = norm.pdf(delta_distance, scale=SONAR_VAR**0.5) # we take the root of the variance as scale corresponds to standard deviation
-        return (x, y, theta, new_weight)
+        return new_data
     
     def __normalise_particles(self):
         total_weight = sum(weight for (_, _, _, weight) in self.data)
@@ -243,9 +248,9 @@ class Particles:
             print(error)
         
         time.sleep(0.02)
-        self.data = [Particles.__update_weight(particle, measured_distance) for particle in self.data]
-        self.data = Particles.__normalise_particles()
-        self.data = Particles.__resample_particles()
+        self.data = self.__update_weight(measured_distance)
+        self.data = self.__normalise_particles()
+        self.data = self.__resample_particles()
             
 
 if __name__ == "__main__":
