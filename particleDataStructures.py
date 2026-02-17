@@ -135,6 +135,7 @@ class Particles:
         distance: the distance (in cm) that the robot moves forward
         """
         self.data = self.__apply_forward(distance)
+        self.canvas.drawParticles()
         self.__MCL_update()
     
     def turn(self, angle):
@@ -253,8 +254,12 @@ class Particles:
         
         time.sleep(0.02)
         self.data = self.__update_weight(measured_distance)
+        self.canvas.drawParticles()
+        time.sleep(0.05)
         self.data = self.__normalise_particles()
         self.data = self.__resample_particles()
+        self.canvas.drawParticles()
+        time.sleep(0.05)
             
 
 if __name__ == "__main__":
