@@ -98,7 +98,7 @@ def forward(particles, distance: float):
         wait_for_motor_position(target, target)
 
         # Update particles
-        particles = particles.forward(distance)
+        particles = particles.forward(distance/10)
 
         time.sleep(MINI_WAIT_TIME)  # Small pause after reaching target
         print("Forward movement completed\n")
