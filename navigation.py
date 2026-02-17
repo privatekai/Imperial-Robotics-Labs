@@ -2,7 +2,7 @@ import time
 from math import floor, sqrt, atan, degrees
 from motion import BP, LEFT_MOTOR_PORT, MOVEMENT_SPEED, RIGHT_MOTOR_PORT, forward, turnAntiClockwise
 from particleDataStructures import WALLS, WAYPOINTS, Canvas, Map, Particles
-INTERVAL = 10
+INTERVAL = 100
 
 def navigate_to_waypoint(waypoint, particles):
     # mean of the particles X, Y and theta
