@@ -2,6 +2,7 @@ import time
 from math import sqrt, atan, degrees
 from motion import BP, LEFT_MOTOR_PORT, MOVEMENT_SPEED, RIGHT_MOTOR_PORT, forward, turnAntiClockwise
 from particleDataStructures import WALLS, WAYPOINTS, Canvas, Map, Particles
+INTERVAL = 10
 
 def navigate_to_waypoint(waypoint, particles):
     # mean of the particles X, Y and theta
@@ -34,7 +35,15 @@ def navigate_to_waypoint(waypoint, particles):
         total_target += 360
 
     particles = turnAntiClockwise(particles, total_target)
-    particles = forward(particles, distance)
+    full_steps, remainder = divmod(distance, INTERVAL)
+
+    # Move in intervals
+    for _ in range(full_steps):
+        particles = forward(particles, INTERVAL)
+
+    # Move the remainder
+    if remainder > 0:
+        particles = forward(particles, remainder)
 
     return particles
 
