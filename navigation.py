@@ -1,13 +1,13 @@
 import time
 import numpy as np
 from motion import BP, LEFT_MOTOR_PORT, MOVEMENT_SPEED, RIGHT_MOTOR_PORT, forward, turnAntiClockwise
-from visualisation import NUM_PARTICLES, ROBOT_START_POS, initial_drawing, robot_position
+from particleDataStructures import WALLS, Canvas, Map, Particles
 
-def navigate_to_waypoint(waypoint, particles, weights):
+def navigate_to_waypoint(waypoint, particles):
     # mean of the particles X, Y and theta
     # find angle and distance to get to waypoint
     # move robot (this will update the particles).
-    robot_x, robot_y, robot_facing = robot_position(particles, weights)
+    robot_x, robot_y, robot_facing = robot_position(particles)
     w_x, w_y = waypoint
 
     print("robot_x: ", robot_x)
@@ -50,10 +50,14 @@ if __name__ == "__main__":
         BP.set_motor_limits(LEFT_MOTOR_PORT, 50, MOVEMENT_SPEED)
         BP.set_motor_limits(RIGHT_MOTOR_PORT, 50, MOVEMENT_SPEED)
 
-        particles = np.array([ROBOT_START_POS] * NUM_PARTICLES)
-        weights = np.array([1/NUM_PARTICLES] * NUM_PARTICLES)
-        
-        initial_drawing(particles)
+        canvas = Canvas()	# global canvas we are going to draw on
+
+        mymap = Map()
+        for wall in WALLS:
+            mymap.add_wall(wall)
+        mymap.draw()
+
+        particles = Particles()
 
         time.sleep(1)
 
@@ -63,7 +67,7 @@ if __name__ == "__main__":
         y_coord = int(input())
 
         while x_coord != -1: 
-            particles = navigate_to_waypoint((x_coord, y_coord), particles, weights)
+            particles = navigate_to_waypoint((x_coord, y_coord), particles)
 
             print("Enter an x coordinate: ")
             x_coord = int(input())
