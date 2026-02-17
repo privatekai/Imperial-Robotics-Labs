@@ -164,9 +164,9 @@ class Particles:
         for x, y, theta, weight in self.data:
 
             angle = math.radians(theta)
-            x_rand = math.random.gauss(E_MEAN, E_VAR**0.5)
-            y_rand = math.random.gauss(E_MEAN, E_VAR**0.5)
-            theta_rand = math.random.gauss(F_MEAN, F_VAR**0.5)
+            x_rand = random.gauss(E_MEAN, E_VAR**0.5)
+            y_rand = random.gauss(E_MEAN, E_VAR**0.5)
+            theta_rand = random.gauss(F_MEAN, F_VAR**0.5)
             
             x_new = x + (distance + x_rand) * math.cos(angle)
             y_new = y + (distance + y_rand) * math.sin(angle)
@@ -181,7 +181,7 @@ class Particles:
         """
         new_data = []
         for x, y, theta, weight in self.data:
-            theta_rand = math.random.gauss(G_MEAN, G_VAR**0.5)
+            theta_rand = random.gauss(G_MEAN, G_VAR**0.5)
             new_data.append((x, y, theta + angle + theta_rand, weight))
             
         return new_data
@@ -224,7 +224,7 @@ class Particles:
     
     def __normalise_particles(self):
         total_weight = sum(weight for (_, _, _, weight) in self.data)
-        return [(x, y, theta, weight / total_weight) for (x, y, theta, weight) in self.data]
+        return [(x, y, theta, 0 if total_weight == 0 else weight / total_weight) for (x, y, theta, weight) in self.data]
     
     def __resample_particles(self):
         cumulative_weight = 0.0
