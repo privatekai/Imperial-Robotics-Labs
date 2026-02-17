@@ -10,14 +10,12 @@ import random
 import math
 
 import brickpi3 # import the BrickPi3 drivers
+from sonarSensor import SonarSensor
 
 BP = brickpi3.BrickPi3() # Create an instance of the BrickPi3 class. BP will be the BrickPi3 object.
+sonar = SonarSensor(BP)
 
-# Configure for an EV3 color sensor.
-# BP.set_sensor_type configures the BrickPi3 for a specific sensor.
-# BP.PORT_1 specifies that the sensor will be on sensor port 1.
-# BP.Sensor_TYPE.EV3_ULTRASONIC_CM specifies that the sensor will be an EV3 ultrasonic sensor.
-BP.set_sensor_type(BP.PORT_4, BP.SENSOR_TYPE.NXT_ULTRASONIC) # Configure for an EV3 ultrasonic sensor.
+# Sensor configuration is now handled by the SonarSensor class
 
 # particle constants
 NUM_PARTICLES = 100
@@ -248,12 +246,9 @@ class Particles:
         return sampled_array
     
     def __MCL_update(self):
-        measured_distance = None
-        try:
-            measured_distance = BP.get_sensor(BP.PORT_4)
-            print(measured_distance)                         # print the distance in CM
-        except brickpi3.SensorError as error:
-            print(error)
+        measured_distance = sonar.get_distance()
+        if measured_distance is not None:
+            print(measured_distance)  # print the calibrated distance in CM
         
         time.sleep(0.5)
         self.data = self.__update_weight(measured_distance)
