@@ -242,6 +242,7 @@ class Particles:
         return sampled_array
     
     def __MCL_update(self):
+        measured_distance = None
         try:
             measured_distance = BP.get_sensor(BP.PORT_4)
             print(measured_distance)                         # print the distance in CM
