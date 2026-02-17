@@ -35,15 +35,15 @@ def navigate_to_waypoint(waypoint, particles):
         total_target += 360
 
     turnAntiClockwise(particles, total_target)
-    full_steps, remainder = divmod(distance, INTERVAL)
+    # full_steps, remainder = divmod(distance, INTERVAL)
 
     # Move in intervals
-    for _ in range(floor(full_steps)):
-        forward(particles, INTERVAL)
+    # for _ in range(floor(full_steps)):
+    forward(particles, distance)
 
     # Move the remainder
-    if remainder > 0:
-        forward(particles, remainder)
+    # if remainder > 0:
+    #     forward(particles, remainder)
 
     return particles
 
