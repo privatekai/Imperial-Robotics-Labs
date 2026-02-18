@@ -254,12 +254,14 @@ class Particles:
         return sampled_array
     
     def __MCL_update(self):
-        measured_distance = sonar.get_distance()
-        if measured_distance is not None:
-            print(measured_distance)  # print the calibrated distance in CM
-        
+        forward, left, right = sonar.get_directions()
+        print(f"Distances — forward: {forward}, left: {left}, right: {right}")
         time.sleep(0.05)
-        self.data = self.__update_weight(measured_distance)
+        self.data = self.__update_weight([
+            (forward, 'forward'),
+            (left,    'left'),
+            (right,   'right'),
+        ])
         self.draw()
         time.sleep(0.05)
         self.data = self.__normalise_particles()
