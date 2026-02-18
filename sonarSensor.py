@@ -114,7 +114,10 @@ class SonarSensor:
     def get_distance_direction(self, direction):
         """Rotate sonar to direction, return calibrated distance (cm) or None."""
         self._rotate_to(direction)
-        return self.get_distance()
+        distance = self.get_distance()
+        if direction != 'forward':
+            self._rotate_to('forward')
+        return distance
 
     def get_directions(self):
         """Return (forward, left, right) calibrated distance triple (cm)."""
