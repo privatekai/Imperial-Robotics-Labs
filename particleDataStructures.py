@@ -52,6 +52,8 @@ WALLS = [
     (210,0,0,0),        # h: H to O
 ]
 
+MCL_WAIT = 0.05
+
 # Functions to generate some dummy particles data:
 def calcX():
     return random.gauss(80,3) + 70*(math.sin(t)) # in cm
@@ -251,14 +253,14 @@ class Particles:
         if measured_distance is not None:
             print(measured_distance)  # print the calibrated distance in CM
         
-        time.sleep(0.05)
+        time.sleep(MCL_WAIT)
         self.data = self.__update_weight(measured_distance)
         self.draw()
-        time.sleep(0.05)
+        time.sleep(MCL_WAIT)
         self.data = self.__normalise_particles()
         self.data = self.__resample_particles()
         self.draw()
-        time.sleep(0.05)
+        time.sleep(MCL_WAIT)
             
 
 if __name__ == "__main__":
@@ -276,4 +278,4 @@ if __name__ == "__main__":
         particles.update()
         particles.draw()
         t += 0.05
-        time.sleep(0.05)
+        time.sleep(MCL_WAIT)
