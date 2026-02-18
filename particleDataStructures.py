@@ -223,7 +223,7 @@ class Particles:
                         continue
                     minimum_distance_to_wall = distance_to_wall
 
-                if minimum_distance_to_wall > 150:
+                if minimum_distance_to_wall > 180:
                     continue
                 weight *= normPdf(measured_distance - minimum_distance_to_wall, SONAR_VAR)
 
