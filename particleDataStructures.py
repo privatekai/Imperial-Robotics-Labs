@@ -193,6 +193,7 @@ class Particles:
         """
         new_data = []
         for x, y, theta, _ in self.data:
+            angle = math.radians(theta)
             
             # calculate the particle's distance from each wall and take the closest one.
             minimum_distance_to_wall = float("inf") 
@@ -202,11 +203,11 @@ class Particles:
                 # TODO: divide by zero error
                 
                 distance_to_wall = (b_y - a_x) * (a_x - x) - (b_x - a_x) * (a_y - y)
-                distance_to_wall /= (b_y - a_y) * math.cos(theta) - (b_x - a_x) * math.sin(theta)
+                distance_to_wall /= (b_y - a_y) * math.cos(angle) - (b_x - a_x) * math.sin(angle)
                 
                 # check if the intersection is between the endpoints of the wall.
-                x_intersection = x + distance_to_wall * math.cos(theta)
-                y_intersection = y + distance_to_wall * math.sin(theta)
+                x_intersection = x + distance_to_wall * math.cos(angle)
+                y_intersection = y + distance_to_wall * math.sin(angle)
                 min_x, max_x = min(a_x, b_x), max(a_x, b_x)
                 min_y, max_y = min(a_y, b_y), max(a_y, b_y)
                 if x_intersection < min_x or max_x < x_intersection or y_intersection < min_y or max_y < y_intersection:
