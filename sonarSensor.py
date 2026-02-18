@@ -62,6 +62,8 @@ class SonarSensor:
         try:
             raw_distance = self.BP.get_sensor(self.port)
             calibrated_distance = SCALE_CALIBRATED * raw_distance + OFFSET_CALIBRATED
+            if calibrated_distance > 180:
+                return None
             return calibrated_distance
         except brickpi3.SensorError as error:
             print("Sonar sensor error:", error)
