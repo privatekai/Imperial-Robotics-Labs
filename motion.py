@@ -19,7 +19,7 @@ WHEELBASE_WIDTH = 152
 DISTANCE_ERROR = -0.45 * PI # Making it bigger makes it go less far
 ANGLE_ERROR = 0 # Making it bigger makes it turn more
 
-MINI_WAIT_TIME = 0.75  # Time to wait after each movement (Seconds)
+MINI_WAIT_TIME = 0.15  # Time to wait after each movement (Seconds)
 
 BP = brickpi3.BrickPi3() # Create an instance of the BrickPi3 class. BP will be the BrickPi3 object.
 
@@ -176,7 +176,7 @@ if __name__ == "__main__":
 
         particles = Particles()
 
-        time.sleep(1)
+        time.sleep(0.2)
 
         for _ in range(4):
             for _ in range(4):

@@ -251,14 +251,14 @@ class Particles:
         if measured_distance is not None:
             print(measured_distance)  # print the calibrated distance in CM
         
-        time.sleep(0.5)
+        time.sleep(0.05)
         self.data = self.__update_weight(measured_distance)
         self.draw()
-        time.sleep(0.5)
+        time.sleep(0.05)
         self.data = self.__normalise_particles()
         self.data = self.__resample_particles()
         self.draw()
-        time.sleep(0.5)
+        time.sleep(0.05)
             
 
 if __name__ == "__main__":
