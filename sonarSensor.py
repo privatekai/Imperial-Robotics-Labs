@@ -48,7 +48,7 @@ class SonarSensor:
         self.BP.set_sensor_type(self.port, bp_instance.SENSOR_TYPE.NXT_ULTRASONIC)
 
         # Configure rotation motor
-        bp_instance.set_motor_limits(self.motor_port, power=50, speed=SONAR_MOTOR_SPEED)
+        bp_instance.set_motor_limits(self.motor_port, 50, SONAR_MOTOR_SPEED)
         bp_instance.offset_motor_encoder(
             self.motor_port, bp_instance.get_motor_encoder(self.motor_port))
 
