@@ -6,6 +6,7 @@ from __future__ import division
 import brickpi3
 import math
 import time
+from motion import Motion
 
 # Calibration constants (update these after running calibration)
 SCALE_CALIBRATED = 1.0127
@@ -321,15 +322,12 @@ def calibrate_sonar_offset(sonar):
         return
     print(f"  d1 = {d1:.2f} cm")
 
-    # User turns robot manually
-    print("\nRotate the robot anticlockwise in-place (30–45° is practical; robot centre must stay fixed).")
-    input("Press Enter when the rotation is complete...")
-    try:
-        alpha_deg = float(input("Enter the angle you actually rotated (degrees, anticlockwise positive): ").strip())
-    except ValueError:
-        print("Invalid input.")
-        return
+    alpha_deg = 30.0
     alpha_rad = math.radians(alpha_deg)
+    print(f"\nTurning robot {alpha_deg}° anticlockwise in-place...")
+    motion_ctrl = Motion(sonar.BP)
+    motion_ctrl.turnAntiClockwise(alpha_deg)   # no particles — calibration only
+    time.sleep(0.2)
 
     # Re-point sonar at direction, take reading d2
     print(f"Re-pointing sonar to '{direction}'...")
