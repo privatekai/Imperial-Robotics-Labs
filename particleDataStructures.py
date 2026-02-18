@@ -13,7 +13,7 @@ import brickpi3 # import the BrickPi3 drivers
 from sonarSensor import SonarSensor
 
 BP = brickpi3.BrickPi3() # Create an instance of the BrickPi3 class. BP will be the BrickPi3 object.
-sonar = SonarSensor(BP)
+sonar = SonarSensor(BP)  # sensor_port defaults to PORT_4, motor_port defaults to PORT_C
 
 # Sensor configuration is now handled by the SonarSensor class
 
@@ -185,49 +185,53 @@ class Particles:
             
         return new_data
 
-    def __update_weight(self, measured_distance):
+    def __update_weight(self, measurements):
         """
-        particle: the particle
-        measured_distance: the distance measured from the sonar
+        measurements: list of (distance, direction) pairs from all sonar readings.
         """
         new_data = []
         for x, y, theta, _ in self.data:
-            angle = math.radians(theta)
-            
-            # calculate the particle's distance from each wall and take the closest one.
-            minimum_distance_to_wall = float("inf") 
-            for wall in WALLS:
-                a_x, a_y, b_x, b_y = wall
+            weight = 1.0
+            for measured_distance, direction in measurements:
+                if measured_distance is None:
+                    continue
 
-                # TODO: divide by zero error
-                
-                distance_to_wall = (b_y - a_y) * (a_x - x) - (b_x - a_x) * (a_y - y)
-                distance_to_wall /= (b_y - a_y) * math.cos(angle) - (b_x - a_x) * math.sin(angle)
-                
-                # check if the intersection is between the endpoints of the wall.
-                x_intersection = x + distance_to_wall * math.cos(angle)
-                y_intersection = y + distance_to_wall * math.sin(angle)
-                min_x, max_x = min(a_x, b_x), max(a_x, b_x)
-                min_y, max_y = min(a_y, b_y), max(a_y, b_y)
-                if x_intersection < min_x or max_x < x_intersection or y_intersection < min_y or max_y < y_intersection:
-                    continue
-                
-                # change minimum distance if this wall is closer
-                # distance must be positive because the wall should be in front of the robot
-                if distance_to_wall < 0 or minimum_distance_to_wall < distance_to_wall:
-                    continue
-                minimum_distance_to_wall = distance_to_wall
-            
-            delta_distance = measured_distance - minimum_distance_to_wall
-            new_weight = normPdf(delta_distance, variance=SONAR_VAR) # we take the root of the variance as scale corresponds to standard deviation
-            new_data.append((x, y, theta, new_weight))
-            
+                sx, sy, ray_angle = sonar.ray(x, y, theta, direction)
+
+                # calculate the particle's distance from each wall and take the closest one.
+                minimum_distance_to_wall = float("inf")
+                for wall in WALLS:
+                    a_x, a_y, b_x, b_y = wall
+
+                    # TODO: divide by zero error
+
+                    distance_to_wall = (b_y - a_y) * (a_x - sx) - (b_x - a_x) * (a_y - sy)
+                    distance_to_wall /= (b_y - a_y) * math.cos(ray_angle) - (b_x - a_x) * math.sin(ray_angle)
+
+                    # check if the intersection is between the endpoints of the wall.
+                    x_intersection = sx + distance_to_wall * math.cos(ray_angle)
+                    y_intersection = sy + distance_to_wall * math.sin(ray_angle)
+                    min_x, max_x = min(a_x, b_x), max(a_x, b_x)
+                    min_y, max_y = min(a_y, b_y), max(a_y, b_y)
+                    if x_intersection < min_x or max_x < x_intersection or y_intersection < min_y or max_y < y_intersection:
+                        continue
+
+                    # change minimum distance if this wall is closer
+                    # distance must be positive because the wall should be in front of the robot
+                    if distance_to_wall < 0 or minimum_distance_to_wall < distance_to_wall:
+                        continue
+                    minimum_distance_to_wall = distance_to_wall
+
+                weight *= normPdf(measured_distance - minimum_distance_to_wall, SONAR_VAR)
+
+            new_data.append((x, y, theta, weight))
+
         return new_data
     
     def __normalise_particles(self):
         total_weight = sum(weight for (_, _, _, weight) in self.data)
         if total_weight == 0:
-            raise Excpetion("total_weight is 0 - particles are gonna die")
+            raise Exception("total_weight is 0 - particles are gonna die")
         return [(x, y, theta, weight / total_weight) for (x, y, theta, weight) in self.data]
     
     def __resample_particles(self):
@@ -248,12 +252,14 @@ class Particles:
         return sampled_array
     
     def __MCL_update(self):
-        measured_distance = sonar.get_distance()
-        if measured_distance is not None:
-            print(measured_distance)  # print the calibrated distance in CM
-        
+        forward, left, right = sonar.get_directions()
+        print(f"Distances — forward: {forward}, left: {left}, right: {right}")
         time.sleep(0.05)
-        self.data = self.__update_weight(measured_distance)
+        self.data = self.__update_weight([
+            (forward, 'forward'),
+            (left,    'left'),
+            (right,   'right'),
+        ])
         self.draw()
         time.sleep(0.05)
         self.data = self.__normalise_particles()
