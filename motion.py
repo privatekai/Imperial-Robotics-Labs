@@ -164,7 +164,7 @@ if __name__ == "__main__":
     dummy = DummyParticles()
 
     def calibrate_distance():
-        global DISTANCE_ERROR
+        global WHEEL_CIRCUMFERENCE, WHEEL_DIAMETER
         try:
             dist_mm = float(input("Commanded distance in mm (e.g. 1000): ").strip())
         except ValueError:
@@ -180,19 +180,22 @@ if __name__ == "__main__":
             print("Invalid input.")
             return
 
-        ratio = actual_mm / dist_mm
-        new_de = ratio * (WHEEL_CIRCUMFERENCE + DISTANCE_ERROR) - WHEEL_CIRCUMFERENCE
+        # actual/commanded = (WC + DE) / (new_WC + DE)  =>  new_WC + DE = (WC + DE) * commanded/actual
+        ratio = dist_mm / actual_mm
+        new_wc = ratio * (WHEEL_CIRCUMFERENCE + DISTANCE_ERROR) - DISTANCE_ERROR
+        new_wd = new_wc / PI
 
-        print("\n  Old DISTANCE_ERROR = %f" % DISTANCE_ERROR)
-        print("  New DISTANCE_ERROR = %f" % new_de)
-        print("  Update motion.py: DISTANCE_ERROR = %f\n" % new_de)
+        print("\n  Old WHEEL_DIAMETER = %f  (circumference = %f)" % (WHEEL_DIAMETER, WHEEL_CIRCUMFERENCE))
+        print("  New WHEEL_DIAMETER = %f  (circumference = %f)" % (new_wd, new_wc))
+        print("  Update motion.py: WHEEL_DIAMETER = %f\n" % new_wd)
 
         if input("Apply for this session? (y/n): ").strip().lower() == "y":
-            DISTANCE_ERROR = new_de
+            WHEEL_DIAMETER = new_wd
+            WHEEL_CIRCUMFERENCE = new_wc
             print("Applied.\n")
 
     def calibrate_angle():
-        global ANGLE_ERROR
+        global WHEELBASE_WIDTH
         try:
             angle_deg = float(input("Commanded angle in degrees (e.g. 360): ").strip())
         except ValueError:
@@ -208,24 +211,25 @@ if __name__ == "__main__":
             print("Invalid input.")
             return
 
-        ratio = actual_deg / angle_deg
-        new_ae = ratio * (WHEELBASE_WIDTH + ANGLE_ERROR) - WHEELBASE_WIDTH
+        # actual/commanded = (WB + AE) / (new_WB + AE)  =>  new_WB + AE = (WB + AE) * commanded/actual
+        ratio = angle_deg / actual_deg
+        new_wb = ratio * (WHEELBASE_WIDTH + ANGLE_ERROR) - ANGLE_ERROR
 
-        print("\n  Old ANGLE_ERROR = %f" % ANGLE_ERROR)
-        print("  New ANGLE_ERROR = %f" % new_ae)
-        print("  Update motion.py: ANGLE_ERROR = %f\n" % new_ae)
+        print("\n  Old WHEELBASE_WIDTH = %f" % WHEELBASE_WIDTH)
+        print("  New WHEELBASE_WIDTH = %f" % new_wb)
+        print("  Update motion.py: WHEELBASE_WIDTH = %f\n" % new_wb)
 
         if input("Apply for this session? (y/n): ").strip().lower() == "y":
-            ANGLE_ERROR = new_ae
+            WHEELBASE_WIDTH = new_wb
             print("Applied.\n")
 
     print("=== Motion Calibrator ===")
-    print("DISTANCE_ERROR = %f  ANGLE_ERROR = %f" % (DISTANCE_ERROR, ANGLE_ERROR))
+    print("WHEEL_DIAMETER = %f  WHEELBASE_WIDTH = %f" % (WHEEL_DIAMETER, WHEELBASE_WIDTH))
     print()
 
     while True:
-        print("1. Calibrate distance (DISTANCE_ERROR)")
-        print("2. Calibrate angle   (ANGLE_ERROR)")
+        print("1. Calibrate distance (WHEEL_DIAMETER / WHEEL_CIRCUMFERENCE)")
+        print("2. Calibrate angle   (WHEELBASE_WIDTH)")
         print("3. Exit")
         choice = input("Choice: ").strip()
 
