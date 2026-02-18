@@ -20,8 +20,8 @@ SONAR_RIGHT_ANGLE   = -100         # motor degrees for 90° right — CALIBRATE
 
 # Sonar head position in robot-local frame (cm, x=forward y=left) — CALIBRATE
 FORWARD_OFFSET_X, FORWARD_OFFSET_Y = -0.8642, -4.7303
-LEFT_OFFSET_X,    LEFT_OFFSET_Y    = 0.0, 0.0
-RIGHT_OFFSET_X,   RIGHT_OFFSET_Y   = 0.0, 0.0
+LEFT_OFFSET_X,    LEFT_OFFSET_Y    = 4.7571, -0.7642
+RIGHT_OFFSET_X,   RIGHT_OFFSET_Y   = -4.3820, 1.1515
 
 
 class SonarSensor:
