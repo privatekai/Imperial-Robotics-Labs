@@ -22,11 +22,11 @@ NUM_PARTICLES = 100
 ROBOT_START_POS = (84, 30, 0, 1/NUM_PARTICLES)
 
 # distribution constants
-E_MEAN, E_VAR = 0, 10 # in cm (forward noise)
+E_MEAN, E_VAR = 0, 3 # in cm (forward noise)
 F_MEAN, F_VAR = 0, 1  # in degrees (heading noise during forward)
 G_MEAN, G_VAR = 0, 1  # in degrees (heading noise during turn)
-H_MEAN, H_VAR = 0, 2  # in cm (perpendicular/lateral noise during forward)
-SONAR_VAR = 4 # in cm
+H_MEAN, H_VAR = 0, 5  # in cm (perpendicular/lateral noise during forward)
+SONAR_VAR = 9 # in cm
 
 # waypoints (in cm)
 WAYPOINTS = [
@@ -168,8 +168,8 @@ class Particles:
             perp_rand = random.gauss(H_MEAN, H_VAR**0.5)
             theta_rand = random.gauss(F_MEAN, F_VAR**0.5)
 
-            x_new = x + (distance + dist_rand) * math.cos(angle) - perp_rand * math.sin(angle)
-            y_new = y + (distance + dist_rand) * math.sin(angle) + perp_rand * math.cos(angle)
+            x_new = x + (distance + dist_rand) * math.cos(angle) - (perp_rand * (distance + dist_rand) / 100) * math.sin(angle)
+            y_new = y + (distance + dist_rand) * math.sin(angle) + (perp_rand * (distance + dist_rand) / 100) * math.cos(angle)
             theta_new = theta + theta_rand
 
             new_data.append((x_new, y_new, theta_new, weight))
