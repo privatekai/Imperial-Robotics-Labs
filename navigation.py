@@ -41,7 +41,7 @@ def navigate_to_waypoint(waypoint, particles):
 
         # Move in intervals
         # for _ in range(floor(full_steps)):
-        forward(particles, min(10, distance))
+        forward(particles, min(100, distance))
         # update robot position
         robot_x, robot_y, robot_facing = particles.robot_position()
 
