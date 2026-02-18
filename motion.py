@@ -28,7 +28,7 @@ class Motion:
     def __init__(self, bp_instance, left_port=None, right_port=None):
         self.BP         = bp_instance
         self.left_port  = left_port  or bp_instance.PORT_A
-        self.right_port = right_port or bp_instance.PORT_D
+        self.right_port = right_port or bp_instance.PORT_B
         # Reset encoders and set initial motor limits
         self.BP.offset_motor_encoder(self.left_port,  self.BP.get_motor_encoder(self.left_port))
         self.BP.offset_motor_encoder(self.right_port, self.BP.get_motor_encoder(self.right_port))

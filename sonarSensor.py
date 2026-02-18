@@ -41,7 +41,7 @@ class SonarSensor:
             motor_port:  Motor port for sonar rotation (defaults to BP.PORT_C)
         """
         self.BP = bp_instance
-        self.port = sensor_port if sensor_port is not None else bp_instance.PORT_4
+        self.port = sensor_port if sensor_port is not None else bp_instance.PORT_2
         self.motor_port = motor_port if motor_port is not None else bp_instance.PORT_C
 
         # Configure sensor
