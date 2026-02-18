@@ -26,7 +26,7 @@ E_MEAN, E_VAR = 0, 3 # in cm (forward noise)
 F_MEAN, F_VAR = 0, 1  # in degrees (heading noise during forward)
 G_MEAN, G_VAR = 0, 1  # in degrees (heading noise during turn)
 H_MEAN, H_VAR = 0, 5  # in cm (perpendicular/lateral noise during forward)
-SONAR_VAR = 9 # in cm
+SONAR_VAR = 100 # in cm
 
 # waypoints (in cm)
 WAYPOINTS = [
@@ -195,7 +195,7 @@ class Particles:
         for x, y, theta, _ in self.data:
             weight = 1.0
             for measured_distance, direction in measurements:
-                if measured_distance is None:
+                if measured_distance is None or measured_distance > 180:
                     continue
 
                 sx, sy, ray_angle = sonar.ray(x, y, theta, direction)
