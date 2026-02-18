@@ -156,4 +156,86 @@ def turnAntiClockwise(particles, angle: float):
         print("IOError in turnAntiClockwise: %s" % error)
 
 if __name__ == "__main__":
-    
+
+    class DummyParticles:
+        def forward(self, x): pass
+        def turn(self, x): pass
+
+    dummy = DummyParticles()
+
+    def calibrate_distance():
+        global DISTANCE_ERROR
+        try:
+            dist_mm = float(input("Commanded distance in mm (e.g. 1000): ").strip())
+        except ValueError:
+            print("Invalid input.")
+            return
+
+        print("Moving forward %g mm..." % dist_mm)
+        forward(dummy, dist_mm)
+
+        try:
+            actual_mm = float(input("Measured actual distance traveled (mm): ").strip())
+        except ValueError:
+            print("Invalid input.")
+            return
+
+        ratio = actual_mm / dist_mm
+        new_de = ratio * (WHEEL_CIRCUMFERENCE + DISTANCE_ERROR) - WHEEL_CIRCUMFERENCE
+
+        print("\n  Old DISTANCE_ERROR = %f" % DISTANCE_ERROR)
+        print("  New DISTANCE_ERROR = %f" % new_de)
+        print("  Update motion.py: DISTANCE_ERROR = %f\n" % new_de)
+
+        if input("Apply for this session? (y/n): ").strip().lower() == "y":
+            DISTANCE_ERROR = new_de
+            print("Applied.\n")
+
+    def calibrate_angle():
+        global ANGLE_ERROR
+        try:
+            angle_deg = float(input("Commanded angle in degrees (e.g. 360): ").strip())
+        except ValueError:
+            print("Invalid input.")
+            return
+
+        print("Turning %g degrees anticlockwise..." % angle_deg)
+        turnAntiClockwise(dummy, angle_deg)
+
+        try:
+            actual_deg = float(input("Measured actual angle turned (degrees): ").strip())
+        except ValueError:
+            print("Invalid input.")
+            return
+
+        ratio = actual_deg / angle_deg
+        new_ae = ratio * (WHEELBASE_WIDTH + ANGLE_ERROR) - WHEELBASE_WIDTH
+
+        print("\n  Old ANGLE_ERROR = %f" % ANGLE_ERROR)
+        print("  New ANGLE_ERROR = %f" % new_ae)
+        print("  Update motion.py: ANGLE_ERROR = %f\n" % new_ae)
+
+        if input("Apply for this session? (y/n): ").strip().lower() == "y":
+            ANGLE_ERROR = new_ae
+            print("Applied.\n")
+
+    print("=== Motion Calibrator ===")
+    print("DISTANCE_ERROR = %f  ANGLE_ERROR = %f" % (DISTANCE_ERROR, ANGLE_ERROR))
+    print()
+
+    while True:
+        print("1. Calibrate distance (DISTANCE_ERROR)")
+        print("2. Calibrate angle   (ANGLE_ERROR)")
+        print("3. Exit")
+        choice = input("Choice: ").strip()
+
+        if choice == "1":
+            calibrate_distance()
+        elif choice == "2":
+            calibrate_angle()
+        elif choice == "3":
+            break
+        else:
+            print("Invalid choice.\n")
+
+    BP.reset_all()
