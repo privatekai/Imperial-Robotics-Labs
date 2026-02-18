@@ -22,9 +22,10 @@ NUM_PARTICLES = 100
 ROBOT_START_POS = (84, 30, 0, 1/NUM_PARTICLES)
 
 # distribution constants
-E_MEAN, E_VAR = 0, 10 # in cm
-F_MEAN, F_VAR = 0, 1 # in degrees
-G_MEAN, G_VAR = 0, 1 # in degrees
+E_MEAN, E_VAR = 0, 10 # in cm (forward noise)
+F_MEAN, F_VAR = 0, 1  # in degrees (heading noise during forward)
+G_MEAN, G_VAR = 0, 1  # in degrees (heading noise during turn)
+H_MEAN, H_VAR = 0, 2  # in cm (perpendicular/lateral noise during forward)
 SONAR_VAR = 4 # in cm
 
 # waypoints (in cm)
@@ -165,10 +166,11 @@ class Particles:
 
             angle = math.radians(theta)
             dist_rand = random.gauss(E_MEAN, E_VAR**0.5)
+            perp_rand = random.gauss(H_MEAN, H_VAR**0.5)
             theta_rand = random.gauss(F_MEAN, F_VAR**0.5)
-            
-            x_new = x + (distance + dist_rand) * math.cos(angle)
-            y_new = y + (distance + dist_rand) * math.sin(angle)
+
+            x_new = x + (distance + dist_rand) * math.cos(angle) - perp_rand * math.sin(angle)
+            y_new = y + (distance + dist_rand) * math.sin(angle) + perp_rand * math.cos(angle)
             theta_new = theta + theta_rand
 
             new_data.append((x_new, y_new, theta_new, weight))
@@ -252,14 +254,12 @@ class Particles:
         return sampled_array
     
     def __MCL_update(self):
-        forward, left, right = sonar.get_directions()
-        print(f"Distances — forward: {forward}, left: {left}, right: {right}")
+        measured_distance = sonar.get_distance()
+        if measured_distance is not None:
+            print(measured_distance)  # print the calibrated distance in CM
+        
         time.sleep(0.05)
-        self.data = self.__update_weight([
-            (forward, 'forward'),
-            (left,    'left'),
-            (right,   'right'),
-        ])
+        self.data = self.__update_weight(measured_distance)
         self.draw()
         time.sleep(0.05)
         self.data = self.__normalise_particles()
