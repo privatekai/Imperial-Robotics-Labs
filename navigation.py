@@ -2,7 +2,7 @@ import time
 from math import floor, sqrt, atan, degrees
 from motion import BP, LEFT_MOTOR_PORT, MOVEMENT_SPEED, RIGHT_MOTOR_PORT, forward, turnAntiClockwise
 from particleDataStructures import WALLS, WAYPOINTS, Canvas, Map, Particles
-INTERVAL = 100
+INTERVAL = 20  # cm (= 200 mm steps)
 WAYPOINT_TOLERANCE = 4
 
 def navigate_to_waypoint(waypoint, particles):
@@ -37,11 +37,12 @@ def navigate_to_waypoint(waypoint, particles):
             total_target += 360
 
         turnAntiClockwise(particles, total_target)
-        # full_steps, remainder = divmod(distance, INTERVAL)
 
-        # Move in intervals
-        # for _ in range(floor(full_steps)):
-        forward(particles, min(100, distance))
+        if distance <= INTERVAL:
+            forward(particles, distance * 10)  # cm → mm
+            break
+        else:
+            forward(particles, INTERVAL * 10)  # cm → mm
         # update robot position
         robot_x, robot_y, robot_facing = particles.robot_position()
 
