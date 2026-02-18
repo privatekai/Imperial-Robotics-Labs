@@ -49,8 +49,6 @@ def navigate_to_waypoint(waypoint, particles):
     # if remainder > 0:
     #     forward(particles, remainder)
 
-    return particles
-
 def drive_around_map(particles):
     for waypoint in WAYPOINTS:
         navigate_to_waypoint(waypoint, particles)
