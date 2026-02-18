@@ -15,8 +15,8 @@ OFFSET_CALIBRATED = 3.7975
 # Sonar rotation motor
 SONAR_MOTOR_SPEED   = 100          # degrees/sec
 SONAR_MOTOR_TOL     = 5            # degrees, position tolerance
-SONAR_LEFT_ANGLE    = 90         # motor degrees for 90° left  — CALIBRATE
-SONAR_RIGHT_ANGLE   = -90         # motor degrees for 90° right — CALIBRATE
+SONAR_LEFT_ANGLE    = 96         # motor degrees for 90° left  — CALIBRATE
+SONAR_RIGHT_ANGLE   = -96         # motor degrees for 90° right — CALIBRATE
 
 # Sonar head position in robot-local frame (cm, x=forward y=left) — CALIBRATE
 FORWARD_OFFSET_X, FORWARD_OFFSET_Y = -0.8642, -4.7303
