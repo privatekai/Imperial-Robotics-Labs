@@ -202,7 +202,7 @@ class Particles:
 
                 # TODO: divide by zero error
                 
-                distance_to_wall = (b_y - a_x) * (a_x - x) - (b_x - a_x) * (a_y - y)
+                distance_to_wall = (b_y - a_y) * (a_x - x) - (b_x - a_x) * (a_y - y)
                 distance_to_wall /= (b_y - a_y) * math.cos(angle) - (b_x - a_x) * math.sin(angle)
                 
                 # check if the intersection is between the endpoints of the wall.
