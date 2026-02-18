@@ -226,7 +226,9 @@ class Particles:
     
     def __normalise_particles(self):
         total_weight = sum(weight for (_, _, _, weight) in self.data)
-        return [(x, y, theta, 0 if total_weight == 0 else weight / total_weight) for (x, y, theta, weight) in self.data]
+        if total_weight == 0:
+            raise Excpetion("total_weight is 0 - particles are gonna die")
+        return [(x, y, theta, weight / total_weight) for (x, y, theta, weight) in self.data]
     
     def __resample_particles(self):
         cumulative_weight = 0.0
