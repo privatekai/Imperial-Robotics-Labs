@@ -3,7 +3,7 @@ from math import floor, sqrt, atan, degrees
 from motion import BP, LEFT_MOTOR_PORT, MOVEMENT_SPEED, RIGHT_MOTOR_PORT, forward, turnAntiClockwise
 from particleDataStructures import WALLS, WAYPOINTS, Canvas, Map, Particles
 INTERVAL = 20  # cm (= 200 mm steps)
-WAYPOINT_TOLERANCE = 4
+WAYPOINT_TOLERANCE = 1
 
 def navigate_to_waypoint(waypoint, particles):
     # mean of the particles X, Y and theta
