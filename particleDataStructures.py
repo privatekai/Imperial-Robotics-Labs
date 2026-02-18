@@ -164,12 +164,11 @@ class Particles:
         for x, y, theta, weight in self.data:
 
             angle = math.radians(theta)
-            x_rand = random.gauss(E_MEAN, E_VAR**0.5)
-            y_rand = random.gauss(E_MEAN, E_VAR**0.5)
+            dist_rand = random.gauss(E_MEAN, E_VAR**0.5)
             theta_rand = random.gauss(F_MEAN, F_VAR**0.5)
             
-            x_new = x + (distance + x_rand) * math.cos(angle)
-            y_new = y + (distance + y_rand) * math.sin(angle)
+            x_new = x + (distance + dist_rand) * math.cos(angle)
+            y_new = y + (distance + dist_rand) * math.sin(angle)
             theta_new = theta + theta_rand
 
             new_data.append((x_new, y_new, theta_new, weight))
