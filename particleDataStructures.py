@@ -143,7 +143,6 @@ class Particles:
         """
         self.data = self.__apply_turn(angle)
         self.draw()
-        self.__MCL_update()
 
     def robot_position(self):
         """
