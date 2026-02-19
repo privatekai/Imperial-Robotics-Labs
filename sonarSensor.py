@@ -2,6 +2,7 @@
 
 from __future__ import print_function
 from __future__ import division
+import time
 
 import brickpi3
 
@@ -29,6 +30,8 @@ class SonarSensor:
 
         # Configure sensor
         self.BP.set_sensor_type(self.port, bp_instance.SENSOR_TYPE.NXT_ULTRASONIC)
+
+        time.sleep(1)
 
     def get_distance(self):
         """
