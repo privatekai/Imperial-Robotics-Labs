@@ -253,11 +253,16 @@ class Particles:
             print(measured_distance)  # print the calibrated distance in CM
         
         time.sleep(0.05)
-        self.data = self.__update_weight(measured_distance)
-        self.draw()
-        time.sleep(0.05)
-        self.data = self.__normalise_particles()
-        self.data = self.__resample_particles()
+        past_weights = [weight for (_, _, _, weight) in self.data]
+        try:
+            self.data = self.__update_weight(measured_distance)
+            self.draw()
+            time.sleep(0.05)
+            self.data = self.__normalise_particles()
+            self.data = self.__resample_particles()
+        except Exception:
+            print("Recovering from total_weight is 0...")
+            print("Skipping resampling step!")
         self.draw()
         time.sleep(0.05)
             
