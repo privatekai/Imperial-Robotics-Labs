@@ -24,7 +24,7 @@ MINI_WAIT_TIME = 0.15  # Time to wait after each movement (Seconds)
 BP = brickpi3.BrickPi3() # Create an instance of the BrickPi3 class. BP will be the BrickPi3 object.
 
 LEFT_MOTOR_PORT = BP.PORT_A
-RIGHT_MOTOR_PORT = BP.PORT_D
+RIGHT_MOTOR_PORT = BP.PORT_B
 
 POSITION_TOLERANCE = 5  # Tolerance in degrees for position checking (increased to prevent timeout issues)
 TIMEOUT = 60  # Maximum time to wait for motors to reach position (Seconds)
