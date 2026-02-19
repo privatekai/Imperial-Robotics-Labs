@@ -16,8 +16,8 @@ WHEEL_DIAMETER = 67
 WHEEL_CIRCUMFERENCE = WHEEL_DIAMETER * PI
 WHEELBASE_WIDTH = 152
 
-DISTANCE_ERROR = -1.15 * PI # Making it bigger makes it go less far
-ANGLE_ERROR = -3.074 # Making it bigger makes it turn more
+DISTANCE_ERROR = -0.84 * PI # Making it bigger makes it go less far
+ANGLE_ERROR = 6.16 # Making it bigger makes it turn more
 
 MINI_WAIT_TIME = 0.15  # Time to wait after each movement (Seconds)
 

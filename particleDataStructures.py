@@ -24,8 +24,8 @@ ROBOT_START_POS = (84, 30, 0, 1/NUM_PARTICLES)
 # distribution constants
 E_MEAN, E_VAR = 0, 10 # in cm
 F_MEAN, F_VAR = 0, 1 # in degrees
-G_MEAN, G_VAR = 0, 1 # in degrees
-SONAR_VAR = 4 # in cm
+G_MEAN, G_VAR = 0, 5 # in degrees
+SONAR_VAR = 8 # in cm
 
 # waypoints (in cm)
 WAYPOINTS = [
