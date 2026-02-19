@@ -26,7 +26,7 @@ class SonarSensor:
             port: Sensor port (defaults to BP.PORT_4)
         """
         self.BP = bp_instance
-        self.port = port if port is not None else bp_instance.PORT_4
+        self.port = port if port is not None else bp_instance.PORT_2
 
         # Configure sensor
         self.BP.set_sensor_type(self.port, bp_instance.SENSOR_TYPE.NXT_ULTRASONIC)
@@ -67,7 +67,7 @@ def calibrate_sensor(bp_instance, port=None):
         port: Sensor port (defaults to BP.PORT_4)
     """
     # Configure sensor
-    sensor_port = port if port is not None else bp_instance.PORT_4
+    sensor_port = port if port is not None else bp_instance.PORT_2
     bp_instance.set_sensor_type(sensor_port, bp_instance.SENSOR_TYPE.NXT_ULTRASONIC)
 
     print("=== Sonar Sensor Calibration ===")
