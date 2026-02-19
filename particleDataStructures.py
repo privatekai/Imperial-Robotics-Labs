@@ -226,6 +226,8 @@ class Particles:
     
     def __normalise_particles(self):
         total_weight = sum(weight for (_, _, _, weight) in self.data)
+        if total_weight == 0:
+            raise Excpetion("total_weight is 0 - particles are gonna die")
         return [(x, y, theta, weight / total_weight) for (x, y, theta, weight) in self.data]
     
     def __resample_particles(self):
@@ -255,11 +257,7 @@ class Particles:
         self.draw()
         time.sleep(0.05)
         self.data = self.__normalise_particles()
-        resampled_data = self.__resample_particles()
-        if len(resampled_data) < NUM_PARTICLES:
-            print(f"Some particles lost, only f{len(resampled_data)} left. Will not be resampling! :c")
-        else:
-            self.data = resampled_data
+        self.data = self.__resample_particles()
         self.draw()
         time.sleep(0.05)
             
