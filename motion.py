@@ -243,5 +243,6 @@ if __name__ == "__main__":
     #         print("Invalid choice.\n")
 
     forward(dummy, 400)
+    turnAntiClockwise(dummy, 45)
 
     BP.reset_all()
