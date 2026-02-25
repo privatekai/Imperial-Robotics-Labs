@@ -23,8 +23,8 @@ MINI_WAIT_TIME = 0.15  # Time to wait after each movement (Seconds)
 
 BP = brickpi3.BrickPi3() # Create an instance of the BrickPi3 class. BP will be the BrickPi3 object.
 
-LEFT_MOTOR_PORT = BP.PORT_A
-RIGHT_MOTOR_PORT = BP.PORT_D
+LEFT_MOTOR_PORT = BP.PORT_B
+RIGHT_MOTOR_PORT = BP.PORT_C
 
 POSITION_TOLERANCE = 5  # Tolerance in degrees for position checking (increased to prevent timeout issues)
 TIMEOUT = 60  # Maximum time to wait for motors to reach position (Seconds)
@@ -223,23 +223,25 @@ if __name__ == "__main__":
             WHEELBASE_WIDTH = new_wb
             print("Applied.\n")
 
-    print("=== Motion Calibrator ===")
-    print("WHEEL_DIAMETER = %f  WHEELBASE_WIDTH = %f" % (WHEEL_DIAMETER, WHEELBASE_WIDTH))
-    print()
+    # print("=== Motion Calibrator ===")
+    # print("WHEEL_DIAMETER = %f  WHEELBASE_WIDTH = %f" % (WHEEL_DIAMETER, WHEELBASE_WIDTH))
+    # print()
 
-    while True:
-        print("1. Calibrate distance (WHEEL_DIAMETER / WHEEL_CIRCUMFERENCE)")
-        print("2. Calibrate angle   (WHEELBASE_WIDTH)")
-        print("3. Exit")
-        choice = input("Choice: ").strip()
+    # while True:
+    #     print("1. Calibrate distance (WHEEL_DIAMETER / WHEEL_CIRCUMFERENCE)")
+    #     print("2. Calibrate angle   (WHEELBASE_WIDTH)")
+    #     print("3. Exit")
+    #     choice = input("Choice: ").strip()
 
-        if choice == "1":
-            calibrate_distance()
-        elif choice == "2":
-            calibrate_angle()
-        elif choice == "3":
-            break
-        else:
-            print("Invalid choice.\n")
+    #     if choice == "1":
+    #         calibrate_distance()
+    #     elif choice == "2":
+    #         calibrate_angle()
+    #     elif choice == "3":
+    #         break
+    #     else:
+    #         print("Invalid choice.\n")
+
+    forward(dummy, 400)
 
     BP.reset_all()
