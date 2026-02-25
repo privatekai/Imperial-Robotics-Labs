@@ -7,7 +7,7 @@ from particleDataStructures import WALLS, Canvas, Map, Particles
 
 # UNITS ARE MILLIMETRES
 
-MOVEMENT_SPEED = 180  # Speed for moving forward (Degrees Per Second)
+MOVEMENT_SPEED = 400  # Speed for moving forward (Degrees Per Second)
 TURNING_SPEED = 150   # Speed for turning (Degrees Per Second)
 
 PI = 3.14159627
