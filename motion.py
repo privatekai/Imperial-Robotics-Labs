@@ -8,7 +8,7 @@ from particleDataStructures import WALLS, Canvas, Map, Particles
 # UNITS ARE MILLIMETRES
 
 MOVEMENT_SPEED = 400  # Speed for moving forward (Degrees Per Second)
-TURNING_SPEED = 150   # Speed for turning (Degrees Per Second)
+TURNING_SPEED = 300   # Speed for turning (Degrees Per Second)
 
 PI = 3.14159627
 
@@ -244,5 +244,6 @@ if __name__ == "__main__":
 
     forward(dummy, 400)
     turnAntiClockwise(dummy, 45)
+    forward(dummy, 200)
 
     BP.reset_all()
