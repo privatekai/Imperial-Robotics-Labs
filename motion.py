@@ -3,8 +3,7 @@ from __future__ import division       #                           ''
 
 import time     # import the time library for the sleep function
 import brickpi3
-from visualisation import NUM_PARTICLES, ROBOT_START_POS, apply_all_forward, apply_all_turn, initial_drawing # import the BrickPi3 drivers
-import numpy as np
+from particleDataStructures import WALLS, Canvas, Map, Particles
 
 # UNITS ARE MILLIMETRES
 
@@ -17,10 +16,10 @@ WHEEL_DIAMETER = 67
 WHEEL_CIRCUMFERENCE = WHEEL_DIAMETER * PI
 WHEELBASE_WIDTH = 152
 
-DISTANCE_ERROR = -0.45 * PI # Making it bigger makes it go less far
-ANGLE_ERROR = 0 # Making it bigger makes it turn more
+DISTANCE_ERROR = -1.15 * PI # Making it bigger makes it go less far
+ANGLE_ERROR = -3.074 # Making it bigger makes it turn more
 
-MINI_WAIT_TIME = 0.75  # Time to wait after each movement (Seconds)
+MINI_WAIT_TIME = 0.15  # Time to wait after each movement (Seconds)
 
 BP = brickpi3.BrickPi3() # Create an instance of the BrickPi3 class. BP will be the BrickPi3 object.
 
@@ -98,12 +97,10 @@ def forward(particles, distance: float):
         wait_for_motor_position(target, target)
 
         # Update particles
-        particles = apply_all_forward(particles, distance)
+        particles.forward(distance/10)
 
         time.sleep(MINI_WAIT_TIME)  # Small pause after reaching target
         print("Forward movement completed\n")
-
-        return particles
 
     except IOError as error:
         print("IOError in forward: %s" % error)
@@ -150,40 +147,99 @@ def turnAntiClockwise(particles, angle: float):
         wait_for_motor_position(left_target, right_target)
 
         # Update particles
-        particles = apply_all_turn(particles, angle)
+        particles.turn(angle)
 
         time.sleep(MINI_WAIT_TIME)  # Small pause after reaching target
         print("Turn completed\n")
-
-        return particles
 
     except IOError as error:
         print("IOError in turnAntiClockwise: %s" % error)
 
 if __name__ == "__main__":
-    try:
+
+    class DummyParticles:
+        def forward(self, x): pass
+        def turn(self, x): pass
+
+    dummy = DummyParticles()
+
+    def calibrate_distance():
+        global WHEEL_CIRCUMFERENCE, WHEEL_DIAMETER
         try:
-            BP.offset_motor_encoder(LEFT_MOTOR_PORT, BP.get_motor_encoder(LEFT_MOTOR_PORT)) # reset encoder A
-            BP.offset_motor_encoder(RIGHT_MOTOR_PORT, BP.get_motor_encoder(RIGHT_MOTOR_PORT)) # reset encoder D
-        except IOError as error:
-            print(error)
-        
-        # Initial motor limits (will be updated in forward() and turnClockwise())
-        BP.set_motor_limits(LEFT_MOTOR_PORT, 50, MOVEMENT_SPEED)
-        BP.set_motor_limits(RIGHT_MOTOR_PORT, 50, MOVEMENT_SPEED)
+            dist_mm = float(input("Commanded distance in mm (e.g. 1000): ").strip())
+        except ValueError:
+            print("Invalid input.")
+            return
 
-        particles = np.array([ROBOT_START_POS] * NUM_PARTICLES)
-        weights = np.array([1/NUM_PARTICLES] * NUM_PARTICLES)
-        
-        initial_drawing(particles)
+        print("Moving forward %g mm..." % dist_mm)
+        forward(dummy, dist_mm)
 
-        time.sleep(1)
+        try:
+            actual_mm = float(input("Measured actual distance traveled (mm): ").strip())
+        except ValueError:
+            print("Invalid input.")
+            return
 
-        for _ in range(4):
-            for _ in range(4):
-                particles = forward(particles, 100)
-            particles = turnAntiClockwise(particles, 90)
-        # particles = navigate_to_waypoint((80, 40), particles, weights)
+        # actual/commanded = (WC + DE) / (new_WC + DE)  =>  new_WC + DE = (WC + DE) * commanded/actual
+        ratio = dist_mm / actual_mm
+        new_wc = ratio * (WHEEL_CIRCUMFERENCE + DISTANCE_ERROR) - DISTANCE_ERROR
+        new_wd = new_wc / PI
 
-    finally: # except the program gets interrupted by Ctrl+C on the keyboard.
-        BP.reset_all()        # Unconfigure the sensors, disable the motors, and restore the LED to the control of the BrickPi3 firmware.
+        print("\n  Old WHEEL_DIAMETER = %f  (circumference = %f)" % (WHEEL_DIAMETER, WHEEL_CIRCUMFERENCE))
+        print("  New WHEEL_DIAMETER = %f  (circumference = %f)" % (new_wd, new_wc))
+        print("  Update motion.py: WHEEL_DIAMETER = %f\n" % new_wd)
+
+        if input("Apply for this session? (y/n): ").strip().lower() == "y":
+            WHEEL_DIAMETER = new_wd
+            WHEEL_CIRCUMFERENCE = new_wc
+            print("Applied.\n")
+
+    def calibrate_angle():
+        global WHEELBASE_WIDTH
+        try:
+            angle_deg = float(input("Commanded angle in degrees (e.g. 360): ").strip())
+        except ValueError:
+            print("Invalid input.")
+            return
+
+        print("Turning %g degrees anticlockwise..." % angle_deg)
+        turnAntiClockwise(dummy, angle_deg)
+
+        try:
+            actual_deg = float(input("Measured actual angle turned (degrees): ").strip())
+        except ValueError:
+            print("Invalid input.")
+            return
+
+        # actual/commanded = (WB + AE) / (new_WB + AE)  =>  new_WB + AE = (WB + AE) * commanded/actual
+        ratio = angle_deg / actual_deg
+        new_wb = ratio * (WHEELBASE_WIDTH + ANGLE_ERROR) - ANGLE_ERROR
+
+        print("\n  Old WHEELBASE_WIDTH = %f" % WHEELBASE_WIDTH)
+        print("  New WHEELBASE_WIDTH = %f" % new_wb)
+        print("  Update motion.py: WHEELBASE_WIDTH = %f\n" % new_wb)
+
+        if input("Apply for this session? (y/n): ").strip().lower() == "y":
+            WHEELBASE_WIDTH = new_wb
+            print("Applied.\n")
+
+    print("=== Motion Calibrator ===")
+    print("WHEEL_DIAMETER = %f  WHEELBASE_WIDTH = %f" % (WHEEL_DIAMETER, WHEELBASE_WIDTH))
+    print()
+
+    while True:
+        print("1. Calibrate distance (WHEEL_DIAMETER / WHEEL_CIRCUMFERENCE)")
+        print("2. Calibrate angle   (WHEELBASE_WIDTH)")
+        print("3. Exit")
+        choice = input("Choice: ").strip()
+
+        if choice == "1":
+            calibrate_distance()
+        elif choice == "2":
+            calibrate_angle()
+        elif choice == "3":
+            break
+        else:
+            print("Invalid choice.\n")
+
+    BP.reset_all()
