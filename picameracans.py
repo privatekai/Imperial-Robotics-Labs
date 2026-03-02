@@ -16,6 +16,7 @@ picam2.start()
 starttime = time.time()
  
 white = (255,255,255)
+green = (0,255,0)
 font = cv2.FONT_HERSHEY_SIMPLEX 
 
 for i in range(1000):
@@ -43,7 +44,10 @@ for i in range(1000):
 
     # Calculate connected components: colour thresholded "blob" regions 
     output = cv2.connectedComponentsWithStats(mask, 4, cv2.CV_32F)
-    (numLabels, labels, stats, centroids) = output
+    (numLabels, labels, stats, _) = output
+
+    centroids = []
+    # centroid: (x, y, w, h, area, lowest_point)
 
     # Find the properties of the detected blobs
     for i in range(0, numLabels):
@@ -58,22 +62,41 @@ for i in range(1000):
             h = stats[i, cv2.CC_STAT_HEIGHT]
             area = stats[i, cv2.CC_STAT_AREA]
 
-            lowest_point = (x + 0.5*w, y - h)
+            lowest_point = (x + 0.5*w, y + h) # y value increases as going down
 
-            # (cu, cv) = centroids[i]
-            # Print out the properties of blobs above a certain size
-            if (area > 150):
-                # print("Component", i, "area", area, "Centroid", cu, cv)
-                # cuint = int(cu)
-                # cvint = int(cv)
+            if (area > 200):
+                centroids.append((x, y, w, h, area, lowest_point))
+            
+    # delete all centroids above the width, and also draw centroids on image
+    centroids.sort(key=lambda c: -c[-1][1])
+    i = 0
+    while i < len(centroids):
+        (x, y, w, h, area, lowest_point) = centroids[i]
 
-                # Draw a little circle to show each detected blob
-                img = cv2.circle(img, lowest_point, 5, white, 3)
+        lowest_x, lowest_y = int(lowest_point[0]), int(lowest_point[1])
 
-                # Also print its coordinates on the image!
-                pstring = "(" + str(lowest_point[0]) + "," + str(lowest_point[1]) + ")"
-                img = cv2.putText(img, pstring, (lowest_point[0] + 8, lowest_point[1]), font, 0.5, white, 1, cv2.LINE_AA)
- 
+        # Deleting directly above centroids
+        j = i+1
+        while j < len(centroids):
+            (_, _, _, _, _, (other_lowest_x, _)) = centroids[j]
+            if other_lowest_x > x and other_lowest_x < x+w: # offset?
+                centroids.pop(j)
+            else:
+                j += 1
+
+        # Draw a little circle to show each detected blob
+        img = cv2.circle(img, (lowest_x, lowest_y), 5, white, 3)
+
+        # Also print its coordinates on the image!
+        pstring = "(" + str(lowest_x) + "," + str(lowest_y) + ")"
+        img = cv2.putText(img, pstring, (lowest_x + 8, lowest_y), font, 0.5, white, 1, cv2.LINE_AA)
+        
+        i += 1
+
+    # drawing rectangles?
+    for (x, y, w, h, area, lowest_point) in centroids:
+        img = cv2.rectangle(img, (x, y), (x+w, y+h), green, 5)
+
     cv2.imwrite("demo.jpg", img)
  
  
