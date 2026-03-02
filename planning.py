@@ -31,6 +31,7 @@ barriers = []
 # Set an initial target location which is beyond the obstacles
 target = (0, 400)
 
+# I think can be replaced with our own position / odometry functions
 # Function to predict new robot position based on current pose and velocity controls
 # Uses time deltat in future
 # Returns xnew, ynew, thetanew
