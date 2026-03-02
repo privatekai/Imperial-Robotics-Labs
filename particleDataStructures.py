@@ -26,6 +26,7 @@ E_MEAN, E_VAR = 0, 10 # in cm
 F_MEAN, F_VAR = 0, 1 # in degrees
 G_MEAN, G_VAR = 0, 1 # in degrees
 SONAR_VAR = 4 # in cm
+BASELINE_PROB = 0.01
 
 # waypoints (in cm)
 WAYPOINTS = [
@@ -219,7 +220,7 @@ class Particles:
                 minimum_distance_to_wall = distance_to_wall
             
             delta_distance = measured_distance - minimum_distance_to_wall
-            new_weight = normPdf(delta_distance, variance=SONAR_VAR) # we take the root of the variance as scale corresponds to standard deviation
+            new_weight = normPdf(delta_distance, variance=SONAR_VAR) + BASELINE_PROB # we take the root of the variance as scale corresponds to standard deviation
             new_data.append((x, y, theta, new_weight))
             
         return new_data
