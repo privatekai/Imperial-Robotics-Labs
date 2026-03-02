@@ -54,7 +54,7 @@ for i in range(1000):
 
             x = stats[i, cv2.CC_STAT_LEFT]
             y = stats[i, cv2.CC_STAT_TOP]
-            w = stats[i, c.CC_STAT_WIDTH]
+            w = stats[i, cv2.CC_STAT_WIDTH]
             h = stats[i, cv2.CC_STAT_HEIGHT]
             area = stats[i, cv2.CC_STAT_AREA]
 
