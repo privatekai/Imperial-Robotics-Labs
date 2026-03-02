@@ -40,9 +40,38 @@ for i in range(1000):
     # This is a thresholded version of the image which you can display if
     # you want to check what the colour thresholding does
     result = cv2.bitwise_and(img, img, mask=mask)
+
+    # Calculate connected components: colour thresholded "blob" regions 
+    output = cv2.connectedComponentsWithStats(mask, 4, cv2.CV_32F)
+    (numLabels, labels, stats, centroids) = output
+
+    # Find the properties of the detected blobs
+    for i in range(0, numLabels):
+        # i=0 is the background region so ignore it
+        if i != 0:
+            # Extract the connected component statistics and centroid
+            # Here you can get the limits of the blob if you need them
+            x = stats[i, cv2.CC_STAT_LEFT]
+            y = stats[i, cv2.CC_STAT_TOP]
+            w = stats[i, cv2.CC_STAT_WIDTH]
+            h = stats[i, cv2.CC_STAT_HEIGHT]
+            area = stats[i, cv2.CC_STAT_AREA]
+            (cu, cv) = centroids[i]
+            # Print out the properties of blobs above a certain size
+            if (area > 150):
+                print("Component", i, "area", area, "Centroid", cu, cv)
+                cuint = int(cu)
+                cvint = int(cv)
+                # Draw a little circle to show each detected blob
+                img = cv2.circle(img, (cuint, cvint), 5, white, 3)
+                # Also print its coordinates on the image!
+                pstring = "(" + str(cuint) + "," + str(cvint) + ")"
+                img = cv2.putText(img, pstring, (cuint + 8,cvint), font, 0.5, white, 1, cv2.LINE_AA)
+ 
+    cv2.imwrite("demo.jpg", img)
  
  
-    cv2.imwrite("demo.jpg", result)
+    # cv2.imwrite("demo.jpg", result)
     print("drawImg:" + "/home/pi/prac-files/demo.jpg")
     print("Captured image", i, "at time", time.time() - starttime)
  
