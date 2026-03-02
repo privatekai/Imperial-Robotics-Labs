@@ -219,7 +219,7 @@ class Particles:
                 minimum_distance_to_wall = distance_to_wall
             
             delta_distance = measured_distance - minimum_distance_to_wall
-            new_weight = normPdf(delta_distance, variance=SONAR_VAR) # we take the root of the variance as scale corresponds to standard deviation
+            new_weight = normPdf(delta_distance, variance=SONAR_VAR) + 0.01 # we take the root of the variance as scale corresponds to standard deviation
             new_data.append((x, y, theta, new_weight))
             
         return new_data
