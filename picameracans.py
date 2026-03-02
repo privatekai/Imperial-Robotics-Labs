@@ -51,22 +51,28 @@ for i in range(1000):
         if i != 0:
             # Extract the connected component statistics and centroid
             # Here you can get the limits of the blob if you need them
+
             x = stats[i, cv2.CC_STAT_LEFT]
             y = stats[i, cv2.CC_STAT_TOP]
-            w = stats[i, cv2.CC_STAT_WIDTH]
+            w = stats[i, c.CC_STAT_WIDTH]
             h = stats[i, cv2.CC_STAT_HEIGHT]
             area = stats[i, cv2.CC_STAT_AREA]
-            (cu, cv) = centroids[i]
+
+            lowest_point = (x + 0.5*w, y - h)
+
+            # (cu, cv) = centroids[i]
             # Print out the properties of blobs above a certain size
             if (area > 150):
-                print("Component", i, "area", area, "Centroid", cu, cv)
-                cuint = int(cu)
-                cvint = int(cv)
+                # print("Component", i, "area", area, "Centroid", cu, cv)
+                # cuint = int(cu)
+                # cvint = int(cv)
+
                 # Draw a little circle to show each detected blob
-                img = cv2.circle(img, (cuint, cvint), 5, white, 3)
+                img = cv2.circle(img, lowest_point, 5, white, 3)
+
                 # Also print its coordinates on the image!
-                pstring = "(" + str(cuint) + "," + str(cvint) + ")"
-                img = cv2.putText(img, pstring, (cuint + 8,cvint), font, 0.5, white, 1, cv2.LINE_AA)
+                pstring = "(" + str(lowest_point[0]) + "," + str(lowest_point[1]) + ")"
+                img = cv2.putText(img, pstring, (lowest_point[0] + 8, lowest_point[1]), font, 0.5, white, 1, cv2.LINE_AA)
  
     cv2.imwrite("demo.jpg", img)
  
