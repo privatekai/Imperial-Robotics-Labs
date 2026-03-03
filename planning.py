@@ -105,6 +105,8 @@ def calculateClosestObstacleDistance(x, y):
 
 
 def main():
+    global barriers
+
     # Starting pose (cm, radians)
     x = 0.0
     y = 0.0
