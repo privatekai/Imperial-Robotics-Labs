@@ -5,27 +5,22 @@ import numpy as np
 from picamera2 import Picamera2
  
 BP = brickpi3.BrickPi3()
- 
+WHITE = (255,255,255)
+GREEN = (0,255,0)
+FONT = cv2.FONT_HERSHEY_SIMPLEX 
  
 picam2 = Picamera2()
 preview_config = picam2.create_preview_configuration(main={"size": (640, 480)})
 picam2.configure(preview_config)
- 
 picam2.start()
- 
 starttime = time.time()
- 
-white = (255,255,255)
-green = (0,255,0)
-font = cv2.FONT_HERSHEY_SIMPLEX 
 
-for i in range(1000):
-    img = picam2.capture_array()
+def capture_can_centroids(picam, starttime=0.0):
+    img = picam.capture_array()
  
     # Convert to HSV colour space    
     img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
- 
     
     # Apply colour thresholding: for red this is done in two steps
     # lower mask (0-10)
@@ -40,11 +35,11 @@ for i in range(1000):
     mask = mask0+mask1
     # This is a thresholded version of the image which you can display if
     # you want to check what the colour thresholding does
-    result = cv2.bitwise_and(img, img, mask=mask)
+    # result = cv2.bitwise_and(img, img, mask=mask)
 
     # Calculate connected components: colour thresholded "blob" regions 
     output = cv2.connectedComponentsWithStats(mask, 4, cv2.CV_32F)
-    (numLabels, labels, stats, _) = output
+    (numLabels, _, stats, _) = output
 
     centroids = []
     # centroid: (x, y, w, h, area, lowest_point)
@@ -67,12 +62,12 @@ for i in range(1000):
             if (area > 200):
                 centroids.append((x, y, w, h, area, lowest_point))
             
-    # delete all centroids above the width, and also draw centroids on image
+    # Delete all centroids corresponding to the same coke tower
+    # Also draw centroid coordinates
     centroids.sort(key=lambda c: -c[-1][1])
     i = 0
     while i < len(centroids):
         (x, y, w, h, area, lowest_point) = centroids[i]
-
         lowest_x, lowest_y = int(lowest_point[0]), int(lowest_point[1])
 
         # Deleting directly above centroids
@@ -85,23 +80,26 @@ for i in range(1000):
                 j += 1
 
         # Draw a little circle to show each detected blob
-        img = cv2.circle(img, (lowest_x, lowest_y), 5, white, 3)
+        img = cv2.circle(img, (lowest_x, lowest_y), 5, WHITE, 3)
 
         # Also print its coordinates on the image!
         pstring = "(" + str(lowest_x) + "," + str(lowest_y) + ")"
-        img = cv2.putText(img, pstring, (lowest_x + 8, lowest_y), font, 0.5, white, 1, cv2.LINE_AA)
+        img = cv2.putText(img, pstring, (lowest_x + 8, lowest_y), FONT, 0.5, WHITE, 1, cv2.LINE_AA)
         
         i += 1
 
-    # drawing rectangles?
+    # Draw Rectangles
     for (x, y, w, h, area, lowest_point) in centroids:
-        img = cv2.rectangle(img, (x, y), (x+w, y+h), green, 5)
+        img = cv2.rectangle(img, (x, y), (x+w, y+h), GREEN, 5)
 
+    # Draw image on web interface
     cv2.imwrite("demo.jpg", img)
- 
- 
-    # cv2.imwrite("demo.jpg", result)
     print("drawImg:" + "/home/pi/prac-files/demo.jpg")
     print("Captured image", i, "at time", time.time() - starttime)
+
+    return centroids
+
+for i in range(1000):
+    capture_can_centroids(picam2)
  
 picam2.stop()
