@@ -56,8 +56,8 @@ OBSTACLEWEIGHT = 16
 TAU = 1.5  # lookahead time (seconds)
 
 # Touch sensor ports (TODO: set to actual ports when sensors are connected)
-# LEFT_TOUCH_PORT = BP.PORT_1
-# RIGHT_TOUCH_PORT = BP.PORT_4
+LEFT_TOUCH_PORT = BP.PORT_1
+RIGHT_TOUCH_PORT = BP.PORT_4
 
 
 def cm_per_sec_to_dps(v_cm):
@@ -312,5 +312,5 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
+
 picam2.stop()
