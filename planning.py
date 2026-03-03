@@ -30,7 +30,7 @@ picam2.configure(preview_config)
 picam2.start()
 
 # Timestep delta to run control at
-dt = 0.1
+dt = 0.2
 
 # Target location (cm) — 4.5m ahead along y-axis
 target = (0, 450)
@@ -47,7 +47,8 @@ MAX_BARRIERS = 20
 
 # DWA planning weights
 FORWARDWEIGHT = 12
-OBSTACLEWEIGHT = 16
+OBSTACLEWEIGHT = 24
+SPEEDWEIGHT = 4.0
 TAU = 1.5  # lookahead time (seconds)
 
 # Touch sensor ports
@@ -68,11 +69,11 @@ def encoder_deg_to_cm(deg):
 def predictPosition(vL, vR, x, y, theta, deltat):
     """Predict new robot position based on current pose and velocity controls.
     All distances in cm, theta in radians."""
-    if vL == vR:
+    if abs(vL - vR) < 1e-6:
         xnew = x + vL * deltat * math.cos(theta)
         ynew = y + vL * deltat * math.sin(theta)
         thetanew = theta
-    elif vL == -vR:
+    elif abs(vL + vR) < 1e-6:
         xnew = x
         ynew = y
         thetanew = theta + ((vR - vL) * deltat / WHEELBASE_CM)
@@ -86,9 +87,21 @@ def predictPosition(vL, vR, x, y, theta, deltat):
     return (xnew, ynew, thetanew)
 
 
+DEDUP_RADIUS = BARRIERRADIUS + 2.0  # cm
+
+
+def add_barrier(world_x, world_y):
+    """Add a barrier if not a duplicate of an existing one."""
+    for (bx, by) in barriers:
+        if math.sqrt((bx - world_x)**2 + (by - world_y)**2) < DEDUP_RADIUS:
+            return False
+    barriers.append((world_x, world_y))
+    return True
+
+
 def calculateClosestObstacleDistance(x, y):
     """Calculate distance to the closest obstacle from position (x, y). All in cm."""
-    closestdist = 100000.0
+    closestdist = float('inf')
     for barrier in barriers:
         dx = barrier[0] - x
         dy = barrier[1] - y
@@ -97,6 +110,96 @@ def calculateClosestObstacleDistance(x, y):
         if dist < closestdist:
             closestdist = dist
     return closestdist
+
+
+def dwa_choose_velocities(x, y, theta, vL, vR, verbose=False):
+    """Run DWA and return (vL_chosen, vR_chosen, debug_info_dict).
+
+    If *verbose* is True, print a decision summary to stdout.
+    """
+    bestBenefit = -float('inf')
+    vLchosen = vL
+    vRchosen = vR
+
+    steps = [i * MAXACCELERATION * dt for i in range(-4, 5)]
+    vLpossiblearray = [vL + s for s in steps]
+    vRpossiblearray = [vR + s for s in steps]
+
+    candidates_evaluated = 0
+    candidates_clamped = 0
+    best_forward = 0.0
+    best_obs_cost = 0.0
+    best_obs_dist = float('inf')
+
+    for vLpossible in vLpossiblearray:
+        for vRpossible in vRpossiblearray:
+            if abs(vLpossible) <= MAXVELOCITY and abs(vRpossible) <= MAXVELOCITY:
+                candidates_evaluated += 1
+                (xpredict, ypredict, _) = predictPosition(
+                    vLpossible, vRpossible, x, y, theta, TAU)
+
+                # Check obstacle distance along entire trajectory, not just endpoint
+                min_obstacle_dist = float('inf')
+                for s in range(1, 6):
+                    t = TAU * s / 5
+                    xp, yp, _ = predictPosition(vLpossible, vRpossible, x, y, theta, t)
+                    d = calculateClosestObstacleDistance(xp, yp)
+                    if d < min_obstacle_dist:
+                        min_obstacle_dist = d
+                distanceToObstacle = min_obstacle_dist
+
+                previousTargetDistance = math.sqrt((x - target[0])**2 + (y - target[1])**2)
+                newTargetDistance = math.sqrt((xpredict - target[0])**2 + (ypredict - target[1])**2)
+                distanceForward = previousTargetDistance - newTargetDistance
+
+                distanceBenefit = FORWARDWEIGHT * distanceForward
+
+                if distanceToObstacle < SAFEDIST:
+                    obstacleCost = OBSTACLEWEIGHT * (SAFEDIST - distanceToObstacle)
+                    speed = (abs(vLpossible) + abs(vRpossible)) / 2.0
+                    speedCost = SPEEDWEIGHT * speed * (SAFEDIST - distanceToObstacle) / SAFEDIST
+                else:
+                    obstacleCost = 0.0
+                    speedCost = 0.0
+
+                benefit = distanceBenefit - obstacleCost - speedCost
+                if benefit > bestBenefit:
+                    vLchosen = vLpossible
+                    vRchosen = vRpossible
+                    bestBenefit = benefit
+                    best_forward = distanceBenefit
+                    best_obs_cost = obstacleCost
+                    best_obs_dist = distanceToObstacle
+            else:
+                candidates_clamped += 1
+
+    debug = {
+        'candidates_evaluated': candidates_evaluated,
+        'candidates_clamped': candidates_clamped,
+        'bestBenefit': bestBenefit,
+        'best_forward': best_forward,
+        'best_obs_cost': best_obs_cost,
+        'best_obs_dist': best_obs_dist,
+    }
+
+    if verbose:
+        dist_to_target = math.sqrt((x - target[0])**2 + (y - target[1])**2)
+        print("--- DWA ---")
+        print("  pose: (%.1f, %.1f) theta=%.1f°  dist_to_target=%.1f cm" %
+              (x, y, math.degrees(theta), dist_to_target))
+        print("  barriers: %d  closest_obs=%.1f cm" %
+              (len(barriers), calculateClosestObstacleDistance(x, y)))
+        print("  candidates: %d evaluated, %d clamped" %
+              (candidates_evaluated, candidates_clamped))
+        print("  chosen: vL=%.2f vR=%.2f  (dps: L=%.0f R=%.0f)" %
+              (vLchosen, vRchosen, cm_per_sec_to_dps(vLchosen), cm_per_sec_to_dps(vRchosen)))
+        print("  scores: benefit=%.2f  forward=%.2f  obs_cost=%.2f  obs_dist=%.1f" %
+              (bestBenefit, best_forward, best_obs_cost, best_obs_dist))
+        if best_obs_dist < SAFEDIST:
+            print("  ** AVOIDING OBSTACLE (dist %.1f < safe %.1f) **" %
+                  (best_obs_dist, SAFEDIST))
+
+    return vLchosen, vRchosen, debug
 
 
 def main():
@@ -142,7 +245,7 @@ def main():
                 # cam_x = forward (along robot facing), cam_y = lateral
                 world_x = x + cam_x * math.cos(theta) - cam_y * math.sin(theta)
                 world_y = y + cam_x * math.sin(theta) + cam_y * math.cos(theta)
-                barriers.append((world_x, world_y))
+                add_barrier(world_x, world_y)
 
                 # Draw detection on image
                 display_x, display_y = int(lowest_point[0]), int(lowest_point[1])
@@ -160,77 +263,7 @@ def main():
                 barriers = barriers[-MAX_BARRIERS:]
 
             # --- DWA Planning ---
-            bestBenefit = -100000
-            vLchosen = vL
-            vRchosen = vR
-
-            steps = [i * MAXACCELERATION * dt / 2.0 for i in range(-2, 3)]
-            vLpossiblearray = [vL + s for s in steps]
-            vRpossiblearray = [vR + s for s in steps]
-
-            candidates_evaluated = 0
-            candidates_clamped = 0
-            best_forward = 0.0
-            best_obs_cost = 0.0
-            best_obs_dist = float('inf')
-
-            for vLpossible in vLpossiblearray:
-                for vRpossible in vRpossiblearray:
-                    if abs(vLpossible) <= MAXVELOCITY and abs(vRpossible) <= MAXVELOCITY:
-                        candidates_evaluated += 1
-                        (xpredict, ypredict, _) = predictPosition(
-                            vLpossible, vRpossible, x, y, theta, TAU)
-
-                        # Check obstacle distance along entire trajectory, not just endpoint
-                        min_obstacle_dist = float('inf')
-                        for s in range(1, 6):
-                            t = TAU * s / 5
-                            xp, yp, _ = predictPosition(vLpossible, vRpossible, x, y, theta, t)
-                            d = calculateClosestObstacleDistance(xp, yp)
-                            if d < min_obstacle_dist:
-                                min_obstacle_dist = d
-                        distanceToObstacle = min_obstacle_dist
-
-                        previousTargetDistance = math.sqrt((x - target[0])**2 + (y - target[1])**2)
-                        newTargetDistance = math.sqrt((xpredict - target[0])**2 + (ypredict - target[1])**2)
-                        distanceForward = previousTargetDistance - newTargetDistance
-
-                        distanceBenefit = FORWARDWEIGHT * distanceForward
-
-                        if distanceToObstacle < SAFEDIST:
-                            obstacleCost = OBSTACLEWEIGHT * (SAFEDIST - distanceToObstacle)
-                        else:
-                            obstacleCost = 0.0
-
-                        benefit = distanceBenefit - obstacleCost
-                        if benefit > bestBenefit:
-                            vLchosen = vLpossible
-                            vRchosen = vRpossible
-                            bestBenefit = benefit
-                            best_forward = distanceBenefit
-                            best_obs_cost = obstacleCost
-                            best_obs_dist = distanceToObstacle
-                    else:
-                        candidates_clamped += 1
-
-            vL = vLchosen
-            vR = vRchosen
-
-            # --- Debug: DWA decision summary ---
-            print("--- DWA ---")
-            print("  pose: (%.1f, %.1f) theta=%.1f°  dist_to_target=%.1f cm" %
-                  (x, y, math.degrees(theta), dist_to_target))
-            print("  barriers: %d  closest_obs=%.1f cm" %
-                  (len(barriers), calculateClosestObstacleDistance(x, y)))
-            print("  candidates: %d evaluated, %d clamped" %
-                  (candidates_evaluated, candidates_clamped))
-            print("  chosen: vL=%.2f vR=%.2f  (dps: L=%.0f R=%.0f)" %
-                  (vL, vR, cm_per_sec_to_dps(vL), cm_per_sec_to_dps(vR)))
-            print("  scores: benefit=%.2f  forward=%.2f  obs_cost=%.2f  obs_dist=%.1f" %
-                  (bestBenefit, best_forward, best_obs_cost, best_obs_dist))
-            if best_obs_dist < SAFEDIST:
-                print("  ** AVOIDING OBSTACLE (dist %.1f < safe %.1f) **" %
-                      (best_obs_dist, SAFEDIST))
+            vL, vR, _ = dwa_choose_velocities(x, y, theta, vL, vR, verbose=True)
 
             # --- Motor execution ---
             BP.set_motor_dps(LEFT_PORT, cm_per_sec_to_dps(vL))
