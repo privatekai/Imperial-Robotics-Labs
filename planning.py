@@ -1,153 +1,263 @@
-import os, math, time, random
+import math, time
 
-# Needed constants
-# TODO: Set these constants.
-# BARRIERTHRESHOLD - threshold for can area to be considered a barrier and merged with other detected cans
-# W - robot width (0.5 * robot radius)
-# ROBOTRADIUS - robot radius
-# BARRIERRADIUS - width of barrier
-# k = 160 - pixels per metre for graphics
-# set the width and height of the screen (pixels)
-# WIDTH = 1500
-# HEIGHT = 1000
-# Screen centre will correspond to (x, y) = (0, 0)
-# u0 = WIDTH / 2
-# v0 = HEIGHT / 2
+import brickpi3
+import motion
 
-# MAXVELOCITY - max safe velocity of robot
-# MAXACCELERATION - max safe acceleration of robot
-# SAFEDIST - safe distance away from barrier
+# Hardware references from motion module
+BP = motion.BP
+LEFT_PORT = motion.LEFT_MOTOR_PORT
+RIGHT_PORT = motion.RIGHT_MOTOR_PORT
 
-# Timestep delta to run control at
+# Physical constants (all in cm)
+ROBOTRADIUS = 10.0      # robot radius (cm)
+BARRIERRADIUS = 3.3     # Coke can radius (cm)
+SAFEDIST = 15.0         # safe clearance from obstacle edge (cm)
+MAXVELOCITY = 20.0      # max wheel speed (cm/s) — ~340 DPS
+MAXACCELERATION = 10.0  # max wheel acceleration (cm/s²)
+
+# Wheel geometry (converted mm -> cm)
+WHEEL_CIRCUMFERENCE_CM = motion.WHEEL_CIRCUMFERENCE / 10.0
+WHEELBASE_CM = motion.WHEELBASE_WIDTH / 10.0
+
+# Timestep delta for control loop
 dt = 0.1
 
-# Starting pose of robot
-x = 0.0
-y = 0.0
-theta = 0.0
+# Target location (cm) — 4.5m ahead along y-axis
+target = (0, 450)
 
-# Barrier (obstacle) locations
-# A barrier should be a tuple (x, y), where (x, y) is the centre of the barrier. Barriers are not added to this list until seen with the camera.
+# Goal tolerance (cm)
+GOAL_TOLERANCE = 5.0
+
+# Barrier (obstacle) locations — list of (x, y) tuples in cm
+# Populated at runtime by camera detection pipeline
 barriers = []
 
-# Set an initial target location which is beyond the obstacles
-# TODO: Set this variable to something accurate to the location of the target in the real life course.
-target = (0, 400)
+# Max number of barriers to keep (prevents stale detections accumulating)
+MAX_BARRIERS = 20
 
-# I think can be replaced with our own position / odometry functions
-# Function to predict new robot position based on current pose and velocity controls
-# Uses time deltat in future
-# Returns xnew, ynew, thetanew
-# Also returns path. This is just used for graphics, and returns some complicated stuff
-# used to draw the possible paths during planning. Don't worry about the details of that.
+# DWA planning weights
+FORWARDWEIGHT = 12
+OBSTACLEWEIGHT = 16
+TAU = 1.5  # lookahead time (seconds)
+
+# Touch sensor ports (TODO: set to actual ports when sensors are connected)
+# LEFT_TOUCH_PORT = BP.PORT_1
+# RIGHT_TOUCH_PORT = BP.PORT_4
+
+
+def cm_per_sec_to_dps(v_cm):
+    """Convert velocity in cm/s to motor degrees per second."""
+    return (v_cm / WHEEL_CIRCUMFERENCE_CM) * 360.0
+
+
+def encoder_deg_to_cm(deg):
+    """Convert encoder degrees to distance in cm."""
+    return (deg / 360.0) * WHEEL_CIRCUMFERENCE_CM
+
+
 def predictPosition(vL, vR, x, y, theta, deltat):
-    # TODO: Change this function to get rid of drawing/pygame references and variables we don't need!
-    # Simple special cases
-    # Straight line motion
-    if (vL == vR): 
+    """Predict new robot position based on current pose and velocity controls.
+    All distances in cm, theta in radians."""
+    if vL == vR:
         xnew = x + vL * deltat * math.cos(theta)
         ynew = y + vL * deltat * math.sin(theta)
         thetanew = theta
-        path = (0, vL * deltat)   # 0 indicates pure translation
-    # Pure rotation motion
-    elif (vL == -vR):
+    elif vL == -vR:
         xnew = x
         ynew = y
-        thetanew = theta + ((vR - vL) * deltat / W)
-        path = (1, 0) # 1 indicates pure rotation
+        thetanew = theta + ((vR - vL) * deltat / WHEELBASE_CM)
     else:
-        # Rotation and arc angle of general circular motion
-        # Using equations given in Lecture 2
-        R = W / 2.0 * (vR + vL) / (vR - vL)
-        deltatheta = (vR - vL) * deltat / W
+        R = WHEELBASE_CM / 2.0 * (vR + vL) / (vR - vL)
+        deltatheta = (vR - vL) * deltat / WHEELBASE_CM
         xnew = x + R * (math.sin(deltatheta + theta) - math.sin(theta))
         ynew = y - R * (math.cos(deltatheta + theta) - math.cos(theta))
         thetanew = theta + deltatheta
 
-        # To calculate parameters for arc drawing (complicated Pygame stuff, don't worry)
-        # We need centre of circle
-        (cx, cy) = (x - R * math.sin(theta), y + R * math.cos (theta))
-        # Turn this into Rect
-        Rabs = abs(R)
-        ((tlx, tly), (Rx, Ry)) = ((int(u0 + k * (cx - Rabs)), int(v0 - k * (cy + Rabs))), (int(k * (2 * Rabs)), int(k * (2 * Rabs))))
-        if (R > 0):
-            start_angle = theta - math.pi/2.0
-        else:
-            start_angle = theta + math.pi/2.0
-        stop_angle = start_angle + deltatheta
-        path = (2, ((tlx, tly), (Rx, Ry)), start_angle, stop_angle) # 2 indicates general motion
+    return (xnew, ynew, thetanew)
 
-    return (xnew, ynew, thetanew, path)
 
-# Function to calculate the closest obstacle at a position (x, y)
-# Used during planning
 def calculateClosestObstacleDistance(x, y):
-    # TODO: Remove if statement about whether we know about the barrier or not.
-    closestdist = 100000.0  
-    # Calculate distance to closest obstacle
+    """Calculate distance to the closest obstacle from position (x, y). All in cm."""
+    closestdist = 100000.0
     for barrier in barriers:
-        # Is this a barrier we know about? barrier[2] flag is set when sonar observes it
-        if(barrier[2] == 1):
-            dx = barrier[0] - x
-            dy = barrier[1] - y
-            d = math.sqrt(dx**2 + dy**2)
-            # Distance between closest touching point of circular robot and circular barrier
-            dist = d - BARRIERRADIUS - ROBOTRADIUS
-            if (dist < closestdist):
-                    closestdist = dist
+        dx = barrier[0] - x
+        dy = barrier[1] - y
+        d = math.sqrt(dx**2 + dy**2)
+        dist = d - BARRIERRADIUS - ROBOTRADIUS
+        if dist < closestdist:
+            closestdist = dist
     return closestdist
 
 
-# Main loop
-while(1):
-    # Check if any new barriers are visible from current pose -> i.e. run our camera object detection code here
-    # TODO: Add code to update barriers list by detecting can coordinates, and adding to barriers list if new.
+def main():
+    # Starting pose (cm, radians)
+    x = 0.0
+    y = 0.0
+    theta = math.pi / 2  # facing +y (toward target)
 
-    # Planning
-    # We want to find the best benefit where we have a positive component for closeness to target,
-    # and a negative component for closeness to obstacles, for each of a choice of possible actions
-    bestBenefit = -100000
-    FORWARDWEIGHT = 12
-    OBSTACLEWEIGHT = 16
+    # Initial velocities (cm/s)
+    vL = 0.0
+    vR = 0.0
 
-    # TODO: Change this loop to get rid of references to drawing and pygame variables we don't need, and use our own modified above functions
-    # Range of possible motions: each of vL and vR could go up or down a bit
-    vLpossiblearray = (vL - MAXACCELERATION * dt, vL, vL + MAXACCELERATION * dt)
-    vRpossiblearray = (vR - MAXACCELERATION * dt, vR, vR + MAXACCELERATION * dt)
-    print ("New action")
-    newpositionstodraw = [] # Also for possible plotting of robot end positions
-    for vLpossible in vLpossiblearray:
-        for vRpossible in vRpossiblearray:
-                # We can only choose an action if it's within velocity limits
-                if (vLpossible <= MAXVELOCITY and vRpossible <= MAXVELOCITY and vLpossible >= -MAXVELOCITY and vRpossible >= -MAXVELOCITY):
-                    # Predict new position in TAU seconds
-                    TAU = 1.5 
-                    (xpredict, ypredict, thetapredict, path) = predictPosition(vLpossible, vRpossible, x, y, theta, TAU)
-                    newpositionstodraw.append((xpredict, ypredict))
-                    # What is the distance to the closest obstacle from this possible position?
-                    distanceToObstacle = calculateClosestObstacleDistance(xpredict, ypredict)
-                    # Calculate how much close we've moved to target location
-                    previousTargetDistance = math.sqrt((x - target[0])**2 + (y - target[1])**2)
-                    newTargetDistance = math.sqrt((xpredict - target[0])**2 + (ypredict - target[1])**2)
-                    distanceForward = previousTargetDistance - newTargetDistance
-                    # Alternative: how far have I moved forwards?
-                    # distanceForward = xpredict - x
-                    # Positive benefit
-                    distanceBenefit = FORWARDWEIGHT * distanceForward
-                    # Negative cost: once we are less than SAFEDIST from collision, linearly increasing cost
-                    if (distanceToObstacle < SAFEDIST):
-                        obstacleCost = OBSTACLEWEIGHT * (SAFEDIST - distanceToObstacle)
+    # Reset encoders to zero
+    BP.offset_motor_encoder(LEFT_PORT, BP.get_motor_encoder(LEFT_PORT))
+    BP.offset_motor_encoder(RIGHT_PORT, BP.get_motor_encoder(RIGHT_PORT))
+
+    try:
+        while True:
+            loop_start = time.time()
+
+            # --- Check goal ---
+            dist_to_target = math.sqrt((x - target[0])**2 + (y - target[1])**2)
+            if dist_to_target < GOAL_TOLERANCE:
+                BP.set_motor_dps(LEFT_PORT, 0)
+                BP.set_motor_dps(RIGHT_PORT, 0)
+                print("Target reached!")
+                break
+
+            # --- Camera detection (TODO) ---
+            # Update barriers list from camera detection pipeline here
+
+            # Cap barrier list to prevent stale detections accumulating
+            if len(barriers) > MAX_BARRIERS:
+                barriers = barriers[-MAX_BARRIERS:]
+
+            # --- DWA Planning ---
+            bestBenefit = -100000
+            vLchosen = vL
+            vRchosen = vR
+
+            steps = [i * MAXACCELERATION * dt / 2.0 for i in range(-2, 3)]
+            vLpossiblearray = [vL + s for s in steps]
+            vRpossiblearray = [vR + s for s in steps]
+
+            candidates_evaluated = 0
+            candidates_clamped = 0
+            best_forward = 0.0
+            best_obs_cost = 0.0
+            best_obs_dist = float('inf')
+
+            for vLpossible in vLpossiblearray:
+                for vRpossible in vRpossiblearray:
+                    if abs(vLpossible) <= MAXVELOCITY and abs(vRpossible) <= MAXVELOCITY:
+                        candidates_evaluated += 1
+                        (xpredict, ypredict, thetapredict) = predictPosition(
+                            vLpossible, vRpossible, x, y, theta, TAU)
+
+                        # Check obstacle distance along entire trajectory, not just endpoint
+                        min_obstacle_dist = float('inf')
+                        for s in range(1, 6):
+                            t = TAU * s / 5
+                            xp, yp, _ = predictPosition(vLpossible, vRpossible, x, y, theta, t)
+                            d = calculateClosestObstacleDistance(xp, yp)
+                            if d < min_obstacle_dist:
+                                min_obstacle_dist = d
+                        distanceToObstacle = min_obstacle_dist
+
+                        previousTargetDistance = math.sqrt((x - target[0])**2 + (y - target[1])**2)
+                        newTargetDistance = math.sqrt((xpredict - target[0])**2 + (ypredict - target[1])**2)
+                        distanceForward = previousTargetDistance - newTargetDistance
+
+                        distanceBenefit = FORWARDWEIGHT * distanceForward
+
+                        if distanceToObstacle < SAFEDIST:
+                            obstacleCost = OBSTACLEWEIGHT * (SAFEDIST - distanceToObstacle)
+                        else:
+                            obstacleCost = 0.0
+
+                        benefit = distanceBenefit - obstacleCost
+                        if benefit > bestBenefit:
+                            vLchosen = vLpossible
+                            vRchosen = vRpossible
+                            bestBenefit = benefit
+                            best_forward = distanceBenefit
+                            best_obs_cost = obstacleCost
+                            best_obs_dist = distanceToObstacle
                     else:
-                        obstacleCost = 0.0
-                    # Total benefit function to optimise
-                    benefit = distanceBenefit - obstacleCost
-                    if (benefit > bestBenefit):
-                        vLchosen = vLpossible
-                        vRchosen = vRpossible
-                        bestBenefit = benefit
-    vL = vLchosen
-    vR = vRchosen
+                        candidates_clamped += 1
 
-    # TODO: move forward using vL and vR
-    # TODO: (optional) Check if we are touching something, and readjust barriers list if so, as well as correct current position.
-    # TODO: Check if we are at target, as weloop this function until at target
+            vL = vLchosen
+            vR = vRchosen
+
+            # --- Debug: DWA decision summary ---
+            print("--- DWA ---")
+            print("  pose: (%.1f, %.1f) theta=%.1f°  dist_to_target=%.1f cm" %
+                  (x, y, math.degrees(theta), dist_to_target))
+            print("  barriers: %d  closest_obs=%.1f cm" %
+                  (len(barriers), calculateClosestObstacleDistance(x, y)))
+            print("  candidates: %d evaluated, %d clamped" %
+                  (candidates_evaluated, candidates_clamped))
+            print("  chosen: vL=%.2f vR=%.2f  (dps: L=%.0f R=%.0f)" %
+                  (vL, vR, cm_per_sec_to_dps(vL), cm_per_sec_to_dps(vR)))
+            print("  scores: benefit=%.2f  forward=%.2f  obs_cost=%.2f  obs_dist=%.1f" %
+                  (bestBenefit, best_forward, best_obs_cost, best_obs_dist))
+            if best_obs_dist < SAFEDIST:
+                print("  ** AVOIDING OBSTACLE (dist %.1f < safe %.1f) **" %
+                      (best_obs_dist, SAFEDIST))
+
+            # --- Motor execution ---
+            BP.set_motor_dps(LEFT_PORT, cm_per_sec_to_dps(vL))
+            BP.set_motor_dps(RIGHT_PORT, cm_per_sec_to_dps(vR))
+
+            # Read encoders before sleep
+            enc_left_before = BP.get_motor_encoder(LEFT_PORT)
+            enc_right_before = BP.get_motor_encoder(RIGHT_PORT)
+
+            elapsed = time.time() - loop_start
+            time.sleep(max(0, dt - elapsed))
+
+            # Read encoders after sleep
+            enc_left_after = BP.get_motor_encoder(LEFT_PORT)
+            enc_right_after = BP.get_motor_encoder(RIGHT_PORT)
+
+            # Compute actual wheel displacements (cm)
+            dL = encoder_deg_to_cm(enc_left_after - enc_left_before)
+            dR = encoder_deg_to_cm(enc_right_after - enc_right_before)
+
+            # Update pose via dead reckoning
+            d_forward = (dL + dR) / 2.0
+            d_theta = (dR - dL) / WHEELBASE_CM
+
+            x += d_forward * math.cos(theta + d_theta / 2.0)
+            y += d_forward * math.sin(theta + d_theta / 2.0)
+            theta += d_theta
+            theta = (theta + math.pi) % (2 * math.pi) - math.pi
+
+            loop_time = time.time() - loop_start
+            print("--- ODOM ---")
+            print("  encoders: dL=%.1f° dR=%.1f°  -> dL=%.2f cm dR=%.2f cm" %
+                  (enc_left_after - enc_left_before, enc_right_after - enc_right_before, dL, dR))
+            print("  dead_reck: fwd=%.2f cm  dtheta=%.2f°" %
+                  (d_forward, math.degrees(d_theta)))
+            print("  new_pose: (%.1f, %.1f) theta=%.1f°  dist=%.1f cm" %
+                  (x, y, math.degrees(theta), dist_to_target))
+            print("  loop_time: %.0f ms" % (loop_time * 1000))
+
+            # --- Bump sensor polling (TODO: enable when sensors are connected) ---
+            # try:
+            #     left_touch = BP.get_sensor(LEFT_TOUCH_PORT)
+            #     right_touch = BP.get_sensor(RIGHT_TOUCH_PORT)
+            #     if left_touch or right_touch:
+            #         # Stop immediately
+            #         BP.set_motor_dps(LEFT_PORT, 0)
+            #         BP.set_motor_dps(RIGHT_PORT, 0)
+            #         time.sleep(0.2)
+            #         # Reverse ~5cm (50mm)
+            #         from particleDataStructures import Particles, Canvas
+            #         # motion.forward(particles, -50)
+            #         # Turn 45° away from the hit side
+            #         if left_touch:
+            #             motion.turnAntiClockwise(None, -45)  # turn clockwise
+            #         else:
+            #             motion.turnAntiClockwise(None, 45)   # turn anticlockwise
+            #         # Re-read pose from encoders after recovery manoeuvre
+            # except (brickpi3.SensorError, IOError):
+            #     pass
+
+    finally:
+        BP.reset_all()
+        print("Motors reset.")
+
+
+if __name__ == "__main__":
+    main()
