@@ -1,6 +1,8 @@
 import os, math, time, random
 
 # Needed constants
+# TODO: Set these constants.
+# BARRIERTHRESHOLD - threshold for can area to be considered a barrier and merged with other detected cans
 # W - robot width (0.5 * robot radius)
 # ROBOTRADIUS - robot radius
 # BARRIERRADIUS - width of barrier
@@ -25,10 +27,11 @@ y = 0.0
 theta = 0.0
 
 # Barrier (obstacle) locations
+# A barrier should be a tuple (x, y), where (x, y) is the centre of the barrier. Barriers are not added to this list until seen with the camera.
 barriers = []
-# add walls of arena ?
 
 # Set an initial target location which is beyond the obstacles
+# TODO: Set this variable to something accurate to the location of the target in the real life course.
 target = (0, 400)
 
 # I think can be replaced with our own position / odometry functions
@@ -38,6 +41,7 @@ target = (0, 400)
 # Also returns path. This is just used for graphics, and returns some complicated stuff
 # used to draw the possible paths during planning. Don't worry about the details of that.
 def predictPosition(vL, vR, x, y, theta, deltat):
+    # TODO: Change this function to get rid of drawing/pygame references and variables we don't need!
     # Simple special cases
     # Straight line motion
     if (vL == vR): 
@@ -78,6 +82,7 @@ def predictPosition(vL, vR, x, y, theta, deltat):
 # Function to calculate the closest obstacle at a position (x, y)
 # Used during planning
 def calculateClosestObstacleDistance(x, y):
+    # TODO: Remove if statement about whether we know about the barrier or not.
     closestdist = 100000.0  
     # Calculate distance to closest obstacle
     for barrier in barriers:
@@ -92,13 +97,11 @@ def calculateClosestObstacleDistance(x, y):
                     closestdist = dist
     return closestdist
 
+
 # Main loop
 while(1):
-    # For display of trail
-    # locationhistory.append((x, y))
-    
     # Check if any new barriers are visible from current pose -> i.e. run our camera object detection code here
-    # observeBarriers(x, y, theta)
+    # TODO: Add code to update barriers list by detecting can coordinates, and adding to barriers list if new.
 
     # Planning
     # We want to find the best benefit where we have a positive component for closeness to target,
@@ -107,6 +110,7 @@ while(1):
     FORWARDWEIGHT = 12
     OBSTACLEWEIGHT = 16
 
+    # TODO: Change this loop to get rid of references to drawing and pygame variables we don't need, and use our own modified above functions
     # Range of possible motions: each of vL and vR could go up or down a bit
     vLpossiblearray = (vL - MAXACCELERATION * dt, vL, vL + MAXACCELERATION * dt)
     vRpossiblearray = (vR - MAXACCELERATION * dt, vR, vR + MAXACCELERATION * dt)
@@ -144,5 +148,6 @@ while(1):
     vL = vLchosen
     vR = vRchosen
 
-    # then move forward using vL and vR
-    # then loop this function until at target
+    # TODO: move forward using vL and vR
+    # TODO: (optional) Check if we are touching something, and readjust barriers list if so, as well as correct current position.
+    # TODO: Check if we are at target, as weloop this function until at target
