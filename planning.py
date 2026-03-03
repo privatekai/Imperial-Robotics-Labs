@@ -1,12 +1,9 @@
 import math, time
-import brickpi3
-import time
+
 import cv2
-import numpy as np
 from picamera2 import Picamera2
 from picameracans import captureCanCentroids, displayImg, WHITE, FONT
-from picamerahomographygrid import drawGridOnImage, HtransformXYtoUV, HtransformUVtoXY, H
-# from motion import forward, turnAntiClockwise
+from picamerahomographygrid import drawGridOnImage, HtransformUVtoXY, HInv
 
 import motion
 
@@ -25,8 +22,6 @@ MAXACCELERATION = 10.0  # max wheel acceleration (cm/s²)
 # Wheel geometry (converted mm -> cm)
 WHEEL_CIRCUMFERENCE_CM = motion.WHEEL_CIRCUMFERENCE / 10.0
 WHEELBASE_CM = motion.WHEELBASE_WIDTH / 10.0
-
-# Timestep delta for control loop
 
 # Start camera
 picam2 = Picamera2()
@@ -55,7 +50,7 @@ FORWARDWEIGHT = 12
 OBSTACLEWEIGHT = 16
 TAU = 1.5  # lookahead time (seconds)
 
-# Touch sensor ports (TODO: set to actual ports when sensors are connected)
+# Touch sensor ports
 LEFT_TOUCH_PORT = BP.PORT_1
 RIGHT_TOUCH_PORT = BP.PORT_4
 
@@ -116,42 +111,6 @@ def main():
     vL = 0.0
     vR = 0.0
 
-    # Draws homography grid onto image
-    # drawGridOnImage()
-
-    (img, canCentroids) = captureCanCentroids(picam2)
-    drawGridOnImage(img)
-
-    for (x, y, w, h, area, lowest_point) in canCentroids:
-
-        # This is relevant to the camera coords - so put in perspective of robot
-        (lowest_x, lowest_y) =  HtransformUVtoXY(H, lowest_point[0], lowest_point[1])
-
-        # x, y is robot position
-        # barriers.append((lowest_x + x, lowest_y + y))
-        display_x, display_y = int(lowest_point[0]), int(lowest_point[1])
-
-        # Draw a little circle to show each detected blob
-        img = cv2.circle(img, (display_x, display_y), 5, WHITE, 3)
-
-        # Also print its coordinates on the image!
-        pstring = "(" + str(barriers[-1][0]) + "," + str(barriers[-1][1]) + ")"
-        img = cv2.putText(img, pstring, (display_x + 8, display_y), FONT, 0.5, WHITE, 1, cv2.LINE_AA)
-        
-        print(lowest_point, "-->", barriers[-1])
-
-    displayImg(img)
-
-    
-
-    # Planning
-    # We want to find the best benefit where we have a positive component for closeness to target,
-    # and a negative component for closeness to obstacles, for each of a choice of possible actions
-
-    bestBenefit = -100000
-    FORWARDWEIGHT = 12
-    OBSTACLEWEIGHT = 16
-
     # Reset encoders to zero
     BP.offset_motor_encoder(LEFT_PORT, BP.get_motor_encoder(LEFT_PORT))
     BP.offset_motor_encoder(RIGHT_PORT, BP.get_motor_encoder(RIGHT_PORT))
@@ -168,8 +127,33 @@ def main():
                 print("Target reached!")
                 break
 
-            # --- Camera detection (TODO) ---
-            # Update barriers list from camera detection pipeline here
+            # --- Camera detection ---
+            (img, canCentroids) = captureCanCentroids(picam2)
+            img = drawGridOnImage(img)
+
+            print("--- CAM ---")
+            print("  detected: %d cans" % len(canCentroids))
+
+            for (*_, lowest_point) in canCentroids:
+                # Transform pixel coords to camera-frame ground plane (cm)
+                (cam_x, cam_y) = HtransformUVtoXY(HInv, lowest_point[0], lowest_point[1])
+
+                # Transform camera-frame to world-frame using robot pose + heading
+                # cam_x = forward (along robot facing), cam_y = lateral
+                world_x = x + cam_x * math.cos(theta) - cam_y * math.sin(theta)
+                world_y = y + cam_x * math.sin(theta) + cam_y * math.cos(theta)
+                barriers.append((world_x, world_y))
+
+                # Draw detection on image
+                display_x, display_y = int(lowest_point[0]), int(lowest_point[1])
+                img = cv2.circle(img, (display_x, display_y), 5, WHITE, 3)
+                pstring = "(%.0f, %.0f)" % (world_x, world_y)
+                img = cv2.putText(img, pstring, (display_x + 8, display_y), FONT, 0.5, WHITE, 1, cv2.LINE_AA)
+
+                print("  can: px=(%.0f,%.0f) cam=(%.1f,%.1f) world=(%.1f,%.1f)" %
+                      (lowest_point[0], lowest_point[1], cam_x, cam_y, world_x, world_y))
+
+            displayImg(img)
 
             # Cap barrier list to prevent stale detections accumulating
             if len(barriers) > MAX_BARRIERS:
@@ -194,7 +178,7 @@ def main():
                 for vRpossible in vRpossiblearray:
                     if abs(vLpossible) <= MAXVELOCITY and abs(vRpossible) <= MAXVELOCITY:
                         candidates_evaluated += 1
-                        (xpredict, ypredict, thetapredict) = predictPosition(
+                        (xpredict, ypredict, _) = predictPosition(
                             vLpossible, vRpossible, x, y, theta, TAU)
 
                         # Check obstacle distance along entire trajectory, not just endpoint
@@ -309,10 +293,9 @@ def main():
 
     finally:
         BP.reset_all()
-        print("Motors reset.")
+        picam2.stop()
+        print("Motors reset. Camera stopped.")
 
 
 if __name__ == "__main__":
     main()
-
-picam2.stop()
