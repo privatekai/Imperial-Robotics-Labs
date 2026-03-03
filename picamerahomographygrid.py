@@ -33,8 +33,6 @@ H = np.array([[R[0], R[1], R[2]],
               [R[3], R[4], R[5]],
               [R[6], R[7], 1]])
  
-print ("Homography")
-print (H)
 
 # Inverse homography
 HInv = np.linalg.inv(H)
