@@ -9,13 +9,11 @@ WHITE = (255,255,255)
 GREEN = (0,255,0)
 FONT = cv2.FONT_HERSHEY_SIMPLEX 
  
-picam2 = Picamera2()
-preview_config = picam2.create_preview_configuration(main={"size": (640, 480)})
-picam2.configure(preview_config)
-picam2.start()
-starttime = time.time()
+def displayImg(img):
+    cv2.imwrite("demo.jpg", img)
+    print("drawImg:" + "/home/pi/prac-files/demo.jpg")
 
-def capture_can_centroids(picam, starttime=0.0):
+def captureCanCentroids(picam, starttime=0.0):
     img = picam.capture_array()
  
     # Convert to HSV colour space    
@@ -78,14 +76,7 @@ def capture_can_centroids(picam, starttime=0.0):
                 centroids.pop(j)
             else:
                 j += 1
-
-        # Draw a little circle to show each detected blob
-        img = cv2.circle(img, (lowest_x, lowest_y), 5, WHITE, 3)
-
-        # Also print its coordinates on the image!
-        pstring = "(" + str(lowest_x) + "," + str(lowest_y) + ")"
-        img = cv2.putText(img, pstring, (lowest_x + 8, lowest_y), FONT, 0.5, WHITE, 1, cv2.LINE_AA)
-        
+    
         i += 1
 
     # Draw Rectangles
@@ -93,13 +84,21 @@ def capture_can_centroids(picam, starttime=0.0):
         img = cv2.rectangle(img, (x, y), (x+w, y+h), GREEN, 5)
 
     # Draw image on web interface
-    cv2.imwrite("demo.jpg", img)
-    print("drawImg:" + "/home/pi/prac-files/demo.jpg")
-    print("Captured image", i, "at time", time.time() - starttime)
+    # cv2.imwrite("demo.jpg", img)
+    # print("drawImg:" + "/home/pi/prac-files/demo.jpg")
+    # print("Captured image", i, "at time", time.time() - starttime)
 
-    return centroids
+    return (img, centroids)
 
-for i in range(1000):
-    capture_can_centroids(picam2)
- 
-picam2.stop()
+if __name__ == "__main__":
+    picam2 = Picamera2()
+    preview_config = picam2.create_preview_configuration(main={"size": (640, 480)})
+    picam2.configure(preview_config)
+    picam2.start()
+    starttime = time.time()
+
+    for i in range(1000):
+        (img, _) = captureCanCentroids(picam2)
+        displayImg(img)
+    
+    picam2.stop()

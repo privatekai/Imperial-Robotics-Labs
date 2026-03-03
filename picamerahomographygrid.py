@@ -4,27 +4,9 @@ import cv2
 import numpy as np
 from picamera2 import Picamera2
  
-BP = brickpi3.BrickPi3()
- 
- 
-picam2 = Picamera2()
-preview_config = picam2.create_preview_configuration(main={"size": (640, 480)})
-picam2.configure(preview_config)
- 
-picam2.start()
- 
-starttime = time.time()
  
 white = (255,255,255)
 font = cv2.FONT_HERSHEY_SIMPLEX 
-
-
-
-
-
-
-
-
 
 # Homography for camera: CHANGE THESE NUMBERS: enter your own correspondences 
 # to calibrate the ground plane homography for your robot
@@ -104,18 +86,29 @@ def drawGridOnImage(im):
 
 
 
-for i in range(1000):
-    img = picam2.capture_array()
-    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+if __name__ == "__main__":
+    BP = brickpi3.BrickPi3()
+    
+    
+    picam2 = Picamera2()
+    preview_config = picam2.create_preview_configuration(main={"size": (640, 480)})
+    picam2.configure(preview_config)
+    
+    picam2.start()
+    
+    starttime = time.time()
+    for i in range(1000):
+        img = picam2.capture_array()
+        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
 
 
-    # Draw grid on image
-    img = drawGridOnImage(img)
+        # Draw grid on image
+        img = drawGridOnImage(img)
 
 
-    # Display image on interface
-    cv2.imwrite("demo.jpg", img)
-    print("drawImg:" + "/home/pi/prac-files/demo.jpg")
-    print("Captured image", i, "at time", time.time() - starttime)
+        # Display image on interface
+        cv2.imwrite("demo.jpg", img)
+        print("drawImg:" + "/home/pi/prac-files/demo.jpg")
+        print("Captured image", i, "at time", time.time() - starttime)
 
-picam2.stop()
+    picam2.stop()

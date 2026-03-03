@@ -1,4 +1,13 @@
-import os, math, time, random
+import brickpi3
+import time
+import cv2
+import numpy as np
+from picamera2 import Picamera2
+from picameracans import captureCanCentroids, displayImg, WHITE, FONT
+from picamerahomographygrid import drawGridOnImage, HtransformXYtoUV, HtransformUVtoXY, H
+# from motion import forward, turnAntiClockwise
+
+
 
 # Needed constants
 # TODO: Set these constants.
@@ -17,6 +26,12 @@ import os, math, time, random
 # MAXVELOCITY - max safe velocity of robot
 # MAXACCELERATION - max safe acceleration of robot
 # SAFEDIST - safe distance away from barrier
+
+# Start camera
+picam2 = Picamera2()
+preview_config = picam2.create_preview_configuration(main={"size": (640, 480)})
+picam2.configure(preview_config)
+picam2.start()
 
 # Timestep delta to run control at
 dt = 0.1
@@ -103,9 +118,38 @@ while(1):
     # Check if any new barriers are visible from current pose -> i.e. run our camera object detection code here
     # TODO: Add code to update barriers list by detecting can coordinates, and adding to barriers list if new.
 
+    # Draws homography grid onto image
+    # drawGridOnImage()
+
+    (img, canCentroids) = captureCanCentroids(picam2)
+    drawGridOnImage(img)
+
+    for (x, y, w, h, area, lowest_point) in canCentroids:
+
+        # This is relevant to the camera coords - so put in perspective of robot
+        (lowest_x, lowest_y) =  HtransformUVtoXY(H, lowest_point[0], lowest_point[1])
+
+        # x, y is robot position
+        # barriers.append((lowest_x + x, lowest_y + y))
+        display_x, display_y = int(lowest_point[0]), int(lowest_point[1])
+
+        # Draw a little circle to show each detected blob
+        img = cv2.circle(img, (display_x, display_y), 5, WHITE, 3)
+
+        # Also print its coordinates on the image!
+        pstring = "(" + str(barriers[-1][0]) + "," + str(barriers[-1][1]) + ")"
+        img = cv2.putText(img, pstring, (display_x + 8, display_y), FONT, 0.5, WHITE, 1, cv2.LINE_AA)
+        
+        print(lowest_point, "-->", barriers[-1])
+
+    displayImg(img)
+
+    
+
     # Planning
     # We want to find the best benefit where we have a positive component for closeness to target,
     # and a negative component for closeness to obstacles, for each of a choice of possible actions
+
     bestBenefit = -100000
     FORWARDWEIGHT = 12
     OBSTACLEWEIGHT = 16
@@ -148,6 +192,7 @@ while(1):
     vL = vLchosen
     vR = vRchosen
 
+picam2.stop()
     # TODO: move forward using vL and vR
     # TODO: (optional) Check if we are touching something, and readjust barriers list if so, as well as correct current position.
     # TODO: Check if we are at target, as weloop this function until at target
