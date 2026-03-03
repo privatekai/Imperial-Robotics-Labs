@@ -1,6 +1,13 @@
 import math, time
-
 import brickpi3
+import time
+import cv2
+import numpy as np
+from picamera2 import Picamera2
+from picameracans import captureCanCentroids, displayImg, WHITE, FONT
+from picamerahomographygrid import drawGridOnImage, HtransformXYtoUV, HtransformUVtoXY, H
+# from motion import forward, turnAntiClockwise
+
 import motion
 
 # Hardware references from motion module
@@ -20,6 +27,14 @@ WHEEL_CIRCUMFERENCE_CM = motion.WHEEL_CIRCUMFERENCE / 10.0
 WHEELBASE_CM = motion.WHEELBASE_WIDTH / 10.0
 
 # Timestep delta for control loop
+
+# Start camera
+picam2 = Picamera2()
+preview_config = picam2.create_preview_configuration(main={"size": (640, 480)})
+picam2.configure(preview_config)
+picam2.start()
+
+# Timestep delta to run control at
 dt = 0.1
 
 # Target location (cm) — 4.5m ahead along y-axis
@@ -98,6 +113,42 @@ def main():
     # Initial velocities (cm/s)
     vL = 0.0
     vR = 0.0
+
+    # Draws homography grid onto image
+    # drawGridOnImage()
+
+    (img, canCentroids) = captureCanCentroids(picam2)
+    drawGridOnImage(img)
+
+    for (x, y, w, h, area, lowest_point) in canCentroids:
+
+        # This is relevant to the camera coords - so put in perspective of robot
+        (lowest_x, lowest_y) =  HtransformUVtoXY(H, lowest_point[0], lowest_point[1])
+
+        # x, y is robot position
+        # barriers.append((lowest_x + x, lowest_y + y))
+        display_x, display_y = int(lowest_point[0]), int(lowest_point[1])
+
+        # Draw a little circle to show each detected blob
+        img = cv2.circle(img, (display_x, display_y), 5, WHITE, 3)
+
+        # Also print its coordinates on the image!
+        pstring = "(" + str(barriers[-1][0]) + "," + str(barriers[-1][1]) + ")"
+        img = cv2.putText(img, pstring, (display_x + 8, display_y), FONT, 0.5, WHITE, 1, cv2.LINE_AA)
+        
+        print(lowest_point, "-->", barriers[-1])
+
+    displayImg(img)
+
+    
+
+    # Planning
+    # We want to find the best benefit where we have a positive component for closeness to target,
+    # and a negative component for closeness to obstacles, for each of a choice of possible actions
+
+    bestBenefit = -100000
+    FORWARDWEIGHT = 12
+    OBSTACLEWEIGHT = 16
 
     # Reset encoders to zero
     BP.offset_motor_encoder(LEFT_PORT, BP.get_motor_encoder(LEFT_PORT))
@@ -261,3 +312,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
+picam2.stop()
