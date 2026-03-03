@@ -1,10 +1,7 @@
-import brickpi3
 import time
-import cv2 
+import cv2
 import numpy as np
 from picamera2 import Picamera2
- 
-BP = brickpi3.BrickPi3()
 WHITE = (255,255,255)
 GREEN = (0,255,0)
 FONT = cv2.FONT_HERSHEY_SIMPLEX 
@@ -30,7 +27,7 @@ def captureCanCentroids(picam, starttime=0.0):
     upper_red = np.array([180,255,255])
     mask1 = cv2.inRange(hsv, lower_red, upper_red)
     # join my masks
-    mask = mask0+mask1
+    mask = mask0 | mask1
     # This is a thresholded version of the image which you can display if
     # you want to check what the colour thresholding does
     # result = cv2.bitwise_and(img, img, mask=mask)
