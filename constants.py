@@ -48,7 +48,7 @@ FORWARDWEIGHT = 12                      # used by: planning
 OBSTACLEWEIGHT = 24                     # used by: planning
 SPEEDWEIGHT = 0.0                       # used by: planning
 TAU = 1.5                               # used by: planning  (seconds)
-DEDUP_RADIUS = BARRIERRADIUS + 2.0      # used by: planning  (cm)
+DEDUP_RADIUS = BARRIERRADIUS + 10.0      # used by: planning  (cm)
 
 # -- Particle filter -----------------------------------------------------------
 NUM_PARTICLES = 100                     # used by: particleDataStructures
