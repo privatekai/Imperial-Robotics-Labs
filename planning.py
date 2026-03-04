@@ -25,6 +25,9 @@ picam2.start()
 # Timestep delta to run control at
 dt = 0.25
 
+# Timestep it takes for loop to finish
+loop_time_ = 0.250
+
 # Target location (cm) — 4.5m ahead along y-axis
 target = (0, 450)
 
@@ -95,9 +98,9 @@ def dwa_choose_velocities(x, y, theta, vL, vR, verbose=False):
     vLchosen = vL
     vRchosen = vR
 
-    steps = [i/5 * MAXACCELERATION * dt for i in range(-4, 5)]
-    vLpossiblearray = [vL + s for s in steps]
-    vRpossiblearray = [vR + s for s in steps]
+    steps = [i * MAXACCELERATION * dt for i in range(-4, 5)]
+    vLpossiblearray = list(set([vL + s for s in steps]) - set([0]))
+    vRpossiblearray = list(set([vR + s for s in steps]) - set([0]))
 
     goal_heading = math.atan2(target[1] - y, target[0] - x)
 
@@ -106,6 +109,7 @@ def dwa_choose_velocities(x, y, theta, vL, vR, verbose=False):
     best_forward = 0.0
     best_heading = 0.0
     best_obs_cost = 0.0
+    best_speed_cost = 0.0
     best_obs_dist = float('inf')
 
     type = "a"
@@ -130,7 +134,7 @@ def dwa_choose_velocities(x, y, theta, vL, vR, verbose=False):
                 min_obstacle_dist = float('inf')
                 for s in range(1, 6):
                     t = TAU * s / 5
-                    xp, yp, _ = predictPosition(vLpossible, vRpossible, x, y, theta, t)
+                    xp, yp, _ = predictPosition(vLpossible, vRpossible, x, y, theta, t + loop_time_)
                     d = calculateClosestObstacleDistance(xp, yp)
                     if d < min_obstacle_dist:
                         min_obstacle_dist = d
@@ -144,7 +148,7 @@ def dwa_choose_velocities(x, y, theta, vL, vR, verbose=False):
 
                 if distanceToObstacle < SAFEDIST:
                     obstacleCost = OBSTACLEWEIGHT * (SAFEDIST - distanceToObstacle)
-                    speed = ((vLpossible) + (vRpossible)) / 2.0
+                    speed = (abs(vLpossible) + abs(vRpossible)) / 2.0
                     speedCost = SPEEDWEIGHT * speed * (SAFEDIST - distanceToObstacle) / SAFEDIST
                 else:
                     obstacleCost = 0.0
@@ -152,36 +156,37 @@ def dwa_choose_velocities(x, y, theta, vL, vR, verbose=False):
 
                 # Project displacement onto the vector from robot to target,
                 # normalised by the max distance the robot can travel in TAU.
-                to_target_x = target[0] - x
-                to_target_y = target[1] - y
-                to_target_dist = math.sqrt(to_target_x**2 + to_target_y**2)
-                dx_moved = xpredict - x
-                dy_moved = ypredict - y
-                if to_target_dist > 0 and MAXVELOCITY * TAU > 0:
-                    projection = (dx_moved * to_target_x + dy_moved * to_target_y) / to_target_dist
-                    headingBenefit = HEADINGWEIGHT * projection / (MAXVELOCITY * TAU)
-                else:
-                    headingBenefit = 0.0
+                # to_target_x = target[0] - x
+                # to_target_y = target[1] - y
+                # to_target_dist = math.sqrt(to_target_x**2 + to_target_y**2)
+                # dx_moved = xpredict - x
+                # dy_moved = ypredict - y
+                # if to_target_dist > 0 and MAXVELOCITY * TAU > 0:
+                #     projection = (dx_moved * to_target_x + dy_moved * to_target_y) / to_target_dist
+                #     headingBenefit = HEADINGWEIGHT * projection / (MAXVELOCITY * TAU)
+                # else:
+                #     headingBenefit = 0.0
 
                 with open("planning_out.txt", type) as f:
                     f.write("--- CANDIDATE --- \n")
                     f.write("vL: " + str(vLpossible) + "\n")
                     f.write("vR: " + str(vRpossible) + "\n")
                     f.write("distance benefit: " + str(distanceBenefit) + "\n")
-                    f.write("movement-to-target benefit: " + str(headingBenefit) + "\n")
+                    # f.write("movement-to-target benefit: " + str(headingBenefit) + "\n")
                     f.write("obstacle cost: " + str(obstacleCost) + "\n")
                     f.write("speed cost: " + str(speedCost) + "\n")
 
                     f.close()
 
-                benefit = distanceBenefit + headingBenefit - obstacleCost - speedCost
+                benefit = distanceBenefit - obstacleCost - speedCost
                 if benefit > bestBenefit:
                     vLchosen = vLpossible
                     vRchosen = vRpossible
                     bestBenefit = benefit
                     best_forward = distanceBenefit
-                    best_heading = headingBenefit
+                    best_heading = 0.0
                     best_obs_cost = obstacleCost
+                    best_speed_cost = speedCost
                     best_obs_dist = distanceToObstacle
             else:
                 candidates_clamped += 1
@@ -193,6 +198,7 @@ def dwa_choose_velocities(x, y, theta, vL, vR, verbose=False):
         'best_forward': best_forward,
         'best_heading': best_heading,
         'best_obs_cost': best_obs_cost,
+        'best_speed_cost': best_speed_cost,
         'best_obs_dist': best_obs_dist,
     }
 
@@ -213,8 +219,8 @@ def dwa_choose_velocities(x, y, theta, vL, vR, verbose=False):
               (candidates_evaluated, candidates_clamped))
         print("  chosen: vL=%.2f vR=%.2f  (dps: L=%.0f R=%.0f)" %
               (vLchosen, vRchosen, cm_per_sec_to_dps(vLchosen), cm_per_sec_to_dps(vRchosen)))
-        print("  scores: benefit=%.2f  forward=%.2f  move-to-target=%.2f  obs_cost=%.2f  obs_dist=%.1f" %
-              (bestBenefit, best_forward, best_heading, best_obs_cost, best_obs_dist))
+        print("  scores: benefit=%.2f  forward=%.2f  move-to-target=%.2f  obs_cost=%.2f  obs_dist=%.1f speed_cost=%.1f" %
+              (bestBenefit, best_forward, best_heading, best_obs_cost, best_obs_dist, best_speed_cost))
         if best_obs_dist < SAFEDIST:
             print("  ** AVOIDING OBSTACLE (dist %.1f < safe %.1f) **" %
                   (best_obs_dist, SAFEDIST))
@@ -337,8 +343,8 @@ def main():
     theta = math.pi / 2  # facing +y (toward target)
 
     # Initial velocities (cm/s)
-    vL = 0.0
-    vR = 0.0
+    vL = 1.0
+    vR = 1.0
 
     # Reset encoders to zero
     BP.offset_motor_encoder(LEFT_PORT, BP.get_motor_encoder(LEFT_PORT))
@@ -386,8 +392,8 @@ def main():
             displayImg(img)
 
             # Cap barrier list to prevent stale detections accumulating
-            if len(barriers) > MAX_BARRIERS:
-                barriers = barriers[-MAX_BARRIERS:]
+            # if len(barriers) > MAX_BARRIERS:
+            #     barriers = barriers[-MAX_BARRIERS:]
 
             # --- DWA Planning ---
             vL, vR, _ = dwa_choose_velocities(x, y, theta, vL, vR, verbose=True)
