@@ -49,7 +49,7 @@ OBSTACLEWEIGHT = 24                     # used by: planning
 SPEEDWEIGHT = 0.0                       # used by: planning
 TAU = 1.5                               # used by: planning  (seconds)
 # DEDUP_RADIUS = BARRIERRADIUS + 10.0      # used by: planning  (cm)
-Y_UNCERTAINTY = 15
+Y_UNCERTAINTY = 30
 X_UNCERTAINTY = 5
 CAM_DIST = 90
 
