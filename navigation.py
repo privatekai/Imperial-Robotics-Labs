@@ -1,9 +1,11 @@
 import time
 from math import floor, sqrt, atan, degrees
-from motion import BP, LEFT_MOTOR_PORT, MOVEMENT_SPEED, RIGHT_MOTOR_PORT, forward, turnAntiClockwise
-from particleDataStructures import WALLS, WAYPOINTS, Canvas, Map, Particles
-INTERVAL = 20  # cm (= 200 mm steps)
-WAYPOINT_TOLERANCE = 1
+from constants import (
+    BP, LEFT_MOTOR_PORT, RIGHT_MOTOR_PORT, MOVEMENT_SPEED,
+    WALLS, WAYPOINTS, INTERVAL, WAYPOINT_TOLERANCE,
+)
+from motion import forward, turnAntiClockwise
+from particleDataStructures import Canvas, Map, Particles
 
 def navigate_to_waypoint(waypoint, particles):
     # mean of the particles X, Y and theta
@@ -11,7 +13,7 @@ def navigate_to_waypoint(waypoint, particles):
     # move robot (this will update the particles).
     robot_x, robot_y, robot_facing = particles.robot_position()
     w_x, w_y = waypoint
-    
+
     while sqrt((robot_x - w_x)**2 + (robot_y - w_y)**2) > WAYPOINT_TOLERANCE:
         print("robot_x: ", robot_x)
         print("robot_y: ", robot_y)
@@ -61,7 +63,7 @@ if __name__ == "__main__":
             BP.offset_motor_encoder(RIGHT_MOTOR_PORT, BP.get_motor_encoder(RIGHT_MOTOR_PORT)) # reset encoder D
         except IOError as error:
             print(error)
-        
+
         # Initial motor limits (will be updated in forward() and turnClockwise())
         BP.set_motor_limits(LEFT_MOTOR_PORT, 50, MOVEMENT_SPEED)
         BP.set_motor_limits(RIGHT_MOTOR_PORT, 50, MOVEMENT_SPEED)
@@ -82,7 +84,7 @@ if __name__ == "__main__":
         # print("Enter a y coordinate: ")
         # y_coord = int(input())
 
-        # while x_coord != -1: 
+        # while x_coord != -1:
         #     navigate_to_waypoint((x_coord, y_coord), particles)
 
         #     print("Enter an x coordinate: ")

@@ -2,26 +2,19 @@ import math, time
 
 import cv2
 from picamera2 import Picamera2
-from picameracans import captureCanCentroids, displayImg, WHITE, FONT
+from picameracans import captureCanCentroids, displayImg, FONT
 from picamerahomographygrid import drawGridOnImage, HtransformUVtoXY, HInv
 
-import motion
-
-# Hardware references from motion module
-BP = motion.BP
-LEFT_PORT = motion.LEFT_MOTOR_PORT
-RIGHT_PORT = motion.RIGHT_MOTOR_PORT
-
-# Physical constants (all in cm)
-ROBOTRADIUS = 10.0      # robot radius (cm)
-BARRIERRADIUS = 3.3     # Coke can radius (cm)
-SAFEDIST = 15.0         # safe clearance from obstacle edge (cm)
-MAXVELOCITY = 20.0      # max wheel speed (cm/s) — ~340 DPS
-MAXACCELERATION = 10.0  # max wheel acceleration (cm/s²)
-
-# Wheel geometry (converted mm -> cm)
-WHEEL_CIRCUMFERENCE_CM = motion.WHEEL_CIRCUMFERENCE / 10.0
-WHEELBASE_CM = motion.WHEELBASE_WIDTH / 10.0
+from constants import (
+    BP, LEFT_MOTOR_PORT as LEFT_PORT, RIGHT_MOTOR_PORT as RIGHT_PORT,
+    LEFT_TOUCH_PORT, RIGHT_TOUCH_PORT,
+    WHEEL_CIRCUMFERENCE_CM, WHEELBASE_CM,
+    ROBOTRADIUS, BARRIERRADIUS, SAFEDIST,
+    MAXVELOCITY, MAXACCELERATION,
+    GOAL_TOLERANCE, MAX_BARRIERS,
+    FORWARDWEIGHT, OBSTACLEWEIGHT, SPEEDWEIGHT, TAU,
+    DEDUP_RADIUS, WHITE,
+)
 
 # Start camera
 picam2 = Picamera2()
@@ -35,25 +28,9 @@ dt = 0.2
 # Target location (cm) — 4.5m ahead along y-axis
 target = (0, 450)
 
-# Goal tolerance (cm)
-GOAL_TOLERANCE = 5.0
-
 # Barrier (obstacle) locations — list of (x, y) tuples in cm
 # Populated at runtime by camera detection pipeline
 barriers = []
-
-# Max number of barriers to keep (prevents stale detections accumulating)
-MAX_BARRIERS = 20
-
-# DWA planning weights
-FORWARDWEIGHT = 12
-OBSTACLEWEIGHT = 24
-SPEEDWEIGHT = 4.0
-TAU = 1.5  # lookahead time (seconds)
-
-# Touch sensor ports
-LEFT_TOUCH_PORT = BP.PORT_1
-RIGHT_TOUCH_PORT = BP.PORT_4
 
 
 def cm_per_sec_to_dps(v_cm):
@@ -85,9 +62,6 @@ def predictPosition(vL, vR, x, y, theta, deltat):
         thetanew = theta + deltatheta
 
     return (xnew, ynew, thetanew)
-
-
-DEDUP_RADIUS = BARRIERRADIUS + 2.0  # cm
 
 
 def add_barrier(world_x, world_y):

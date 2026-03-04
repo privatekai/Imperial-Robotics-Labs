@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 
 from __future__ import print_function # use python 3 syntax but make it compatible with python 2
 from __future__ import division
@@ -9,49 +9,17 @@ import time
 import random
 import math
 
-import brickpi3 # import the BrickPi3 drivers
+from constants import (
+    BP, NUM_PARTICLES, ROBOT_START_POS,
+    E_MEAN, E_VAR, F_MEAN, F_VAR, G_MEAN, G_VAR,
+    SONAR_VAR, BASELINE_PROB,
+    WAYPOINTS, WALLS,
+)
 from sonarSensor import SonarSensor
 
-BP = brickpi3.BrickPi3() # Create an instance of the BrickPi3 class. BP will be the BrickPi3 object.
 sonar = SonarSensor(BP)
 
 # Sensor configuration is now handled by the SonarSensor class
-
-# particle constants
-NUM_PARTICLES = 100
-ROBOT_START_POS = (84, 30, 0, 1/NUM_PARTICLES)
-
-# distribution constants
-E_MEAN, E_VAR = 0, 10 # in cm
-F_MEAN, F_VAR = 0, 1 # in degrees
-G_MEAN, G_VAR = 0, 1 # in degrees
-SONAR_VAR = 4 # in cm
-BASELINE_PROB = 0.01
-
-# waypoints (in cm)
-WAYPOINTS = [
-    # (84, 30), Commenting out as this is the robot start pos
-    (180, 30),
-    (180, 54),
-    (138, 54),
-    (138, 168),
-    (114, 168),
-    (114, 84),
-    (84, 84),
-    (84, 30),
-]
-
-# Walls (in cm)
-WALLS = [
-    (0,0,0,168),        # a: O to A
-    (0,168,84,168),     # b: A to B
-    (84,126,84,210),    # c: C to D
-    (84,210,168,210),   # d: D to E
-    (168,210,168,84),   # e: E to F
-    (168,84,210,84),    # f: F to G
-    (210,84,210,0),     # g: G to H
-    (210,0,0,0),        # h: H to O
-]
 
 # Functions to generate some dummy particles data:
 def calcX():
@@ -67,10 +35,10 @@ def calcTheta():
     return random.randint(0,360)
 
 def normPdf(x, variance):
-    return math.exp((-x**2) / (2 * variance)) / math.sqrt((2 * math.pi * variance)) 
+    return math.exp((-x**2) / (2 * variance)) / math.sqrt((2 * math.pi * variance))
 
-""" 
-Data Structures! 
+"""
+Data Structures!
 """
 
 # A Canvas class for drawing a map and particles:
@@ -119,16 +87,16 @@ class Map:
 # Simple Particles set
 class Particles:
     def __init__(self, canvas):
-        self.n = NUM_PARTICLES 
+        self.n = NUM_PARTICLES
         self.data = [ROBOT_START_POS] * NUM_PARTICLES
         self.canvas = canvas
 
     def update(self):
         self.data = [(calcX(), calcY(), calcTheta(), calcW()) for i in range(self.n)]
-    
+
     def draw(self):
         self.canvas.drawParticles(self.data)
-    
+
     def forward(self, distance):
         """
         distance: the distance (in cm) that the robot moves forward
@@ -136,7 +104,7 @@ class Particles:
         self.data = self.__apply_forward(distance)
         self.draw()
         self.__MCL_update()
-    
+
     def turn(self, angle):
         """
         angle: the angle (in degrees) that the robot rotates
@@ -156,18 +124,18 @@ class Particles:
             theta += _theta * _w
 
         return (x, y, theta)
-        
+
     def __apply_forward(self, distance):
         """
         distance: the distance (in cm) that the robot moves forward
-        """    
+        """
         new_data = []
         for x, y, theta, weight in self.data:
 
             angle = math.radians(theta)
             dist_rand = random.gauss(E_MEAN, E_VAR**0.5)
             theta_rand = random.gauss(F_MEAN, F_VAR**0.5)
-            
+
             x_new = x + (distance + dist_rand) * math.cos(angle)
             y_new = y + (distance + dist_rand) * math.sin(angle)
             theta_new = theta + theta_rand
@@ -183,7 +151,7 @@ class Particles:
         for x, y, theta, weight in self.data:
             theta_rand = random.gauss(G_MEAN, G_VAR**0.5)
             new_data.append((x, y, theta + angle + theta_rand, weight))
-            
+
         return new_data
 
     def __update_weight(self, measured_distance):
@@ -194,17 +162,17 @@ class Particles:
         new_data = []
         for x, y, theta, _ in self.data:
             angle = math.radians(theta)
-            
+
             # calculate the particle's distance from each wall and take the closest one.
-            minimum_distance_to_wall = float("inf") 
+            minimum_distance_to_wall = float("inf")
             for wall in WALLS:
                 a_x, a_y, b_x, b_y = wall
 
                 # TODO: divide by zero error
-                
+
                 distance_to_wall = (b_y - a_y) * (a_x - x) - (b_x - a_x) * (a_y - y)
                 distance_to_wall /= (b_y - a_y) * math.cos(angle) - (b_x - a_x) * math.sin(angle)
-                
+
                 # check if the intersection is between the endpoints of the wall.
                 x_intersection = x + distance_to_wall * math.cos(angle)
                 y_intersection = y + distance_to_wall * math.sin(angle)
@@ -212,25 +180,25 @@ class Particles:
                 min_y, max_y = min(a_y, b_y), max(a_y, b_y)
                 if x_intersection < min_x or max_x < x_intersection or y_intersection < min_y or max_y < y_intersection:
                     continue
-                
+
                 # change minimum distance if this wall is closer
                 # distance must be positive because the wall should be in front of the robot
                 if distance_to_wall < 0 or minimum_distance_to_wall < distance_to_wall:
                     continue
                 minimum_distance_to_wall = distance_to_wall
-            
+
             delta_distance = measured_distance - minimum_distance_to_wall
             new_weight = normPdf(delta_distance, variance=SONAR_VAR) + BASELINE_PROB # we take the root of the variance as scale corresponds to standard deviation
             new_data.append((x, y, theta, new_weight))
-            
+
         return new_data
-    
+
     def __normalise_particles(self):
         total_weight = sum(weight for (_, _, _, weight) in self.data)
         if total_weight == 0:
             raise Excpetion("total_weight is 0 - particles are gonna die")
         return [(x, y, theta, weight / total_weight) for (x, y, theta, weight) in self.data]
-    
+
     def __resample_particles(self):
         cumulative_weight = 0.0
         cumulative_weight_array = []
@@ -245,14 +213,14 @@ class Particles:
                 if generated_weight <= cumulative_weight:
                     sampled_array.append((x, y, theta, 1/NUM_PARTICLES))
                     break
-        
+
         return sampled_array
-    
+
     def __MCL_update(self):
         measured_distance = sonar.get_distance()
         if measured_distance is not None:
             print(measured_distance)  # print the calibrated distance in CM
-        
+
         time.sleep(0.05)
         self.data = self.__update_weight(measured_distance)
         self.draw()
@@ -261,7 +229,7 @@ class Particles:
         self.data = self.__resample_particles()
         self.draw()
         time.sleep(0.05)
-            
+
 
 if __name__ == "__main__":
     canvas = Canvas()	# global canvas we are going to draw on

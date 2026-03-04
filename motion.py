@@ -2,32 +2,17 @@ from __future__ import print_function # use python 3 syntax but make it compatib
 from __future__ import division       #                           ''
 
 import time     # import the time library for the sleep function
-import brickpi3
-from particleDataStructures import WALLS, Canvas, Map, Particles
+from constants import (
+    BP, LEFT_MOTOR_PORT, RIGHT_MOTOR_PORT,
+    PI, WHEEL_DIAMETER, WHEEL_CIRCUMFERENCE, WHEELBASE_WIDTH,
+    DISTANCE_ERROR, ANGLE_ERROR,
+    MOVEMENT_SPEED, TURNING_SPEED, MINI_WAIT_TIME,
+    POSITION_TOLERANCE, TIMEOUT,
+)
+from constants import WALLS
+from particleDataStructures import Canvas, Map, Particles
 
 # UNITS ARE MILLIMETRES
-
-MOVEMENT_SPEED = 400  # Speed for moving forward (Degrees Per Second)
-TURNING_SPEED = 300   # Speed for turning (Degrees Per Second)
-
-PI = 3.14159627
-
-WHEEL_DIAMETER = 67
-WHEEL_CIRCUMFERENCE = WHEEL_DIAMETER * PI
-WHEELBASE_WIDTH = 152
-
-DISTANCE_ERROR = -1.15 * PI # Making it bigger makes it go less far
-ANGLE_ERROR = -3.074 # Making it bigger makes it turn more
-
-MINI_WAIT_TIME = 0.15  # Time to wait after each movement (Seconds)
-
-BP = brickpi3.BrickPi3() # Create an instance of the BrickPi3 class. BP will be the BrickPi3 object.
-
-LEFT_MOTOR_PORT = BP.PORT_B
-RIGHT_MOTOR_PORT = BP.PORT_C
-
-POSITION_TOLERANCE = 5  # Tolerance in degrees for position checking (increased to prevent timeout issues)
-TIMEOUT = 60  # Maximum time to wait for motors to reach position (Seconds)
 
 def wait_for_motor_position(left_target, right_target):
     """
@@ -83,7 +68,7 @@ def forward(particles, distance: float):
         # Reset both encoders to 0 to ensure synchronized absolute targets
         BP.offset_motor_encoder(LEFT_MOTOR_PORT, BP.get_motor_encoder(LEFT_MOTOR_PORT))
         BP.offset_motor_encoder(RIGHT_MOTOR_PORT, BP.get_motor_encoder(RIGHT_MOTOR_PORT))
-        
+
         # Set speed limits for forward movement
         BP.set_motor_limits(LEFT_MOTOR_PORT, 50, MOVEMENT_SPEED)
         BP.set_motor_limits(RIGHT_MOTOR_PORT, 50, MOVEMENT_SPEED)

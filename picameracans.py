@@ -2,26 +2,25 @@ import time
 import cv2
 import numpy as np
 from picamera2 import Picamera2
-WHITE = (255,255,255)
-GREEN = (0,255,0)
-FONT = cv2.FONT_HERSHEY_SIMPLEX 
- 
+from constants import WHITE, GREEN
+FONT = cv2.FONT_HERSHEY_SIMPLEX
+
 def displayImg(img):
     cv2.imwrite("demo.jpg", img)
     print("drawImg:" + "/home/pi/prac-files/demo.jpg")
 
 def captureCanCentroids(picam, starttime=0.0):
     img = picam.capture_array()
- 
-    # Convert to HSV colour space    
+
+    # Convert to HSV colour space
     img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    
+
     # Apply colour thresholding: for red this is done in two steps
     # lower mask (0-10)
     lower_red = np.array([0,50,50])
     upper_red = np.array([10,255,255])
-    mask0 = cv2.inRange(hsv, lower_red, upper_red) 
+    mask0 = cv2.inRange(hsv, lower_red, upper_red)
     # upper mask (170-180)
     lower_red = np.array([170,50,50])
     upper_red = np.array([180,255,255])
@@ -32,7 +31,7 @@ def captureCanCentroids(picam, starttime=0.0):
     # you want to check what the colour thresholding does
     # result = cv2.bitwise_and(img, img, mask=mask)
 
-    # Calculate connected components: colour thresholded "blob" regions 
+    # Calculate connected components: colour thresholded "blob" regions
     output = cv2.connectedComponentsWithStats(mask, 4, cv2.CV_32F)
     (numLabels, _, stats, _) = output
 
@@ -56,7 +55,7 @@ def captureCanCentroids(picam, starttime=0.0):
 
             if (area > 200):
                 centroids.append((x, y, w, h, area, lowest_point))
-            
+
     # Delete all centroids corresponding to the same coke tower
     # Also draw centroid coordinates
     centroids.sort(key=lambda c: -c[-1][1])
@@ -73,7 +72,7 @@ def captureCanCentroids(picam, starttime=0.0):
                 centroids.pop(j)
             else:
                 j += 1
-    
+
         i += 1
 
     # Draw Rectangles
@@ -97,5 +96,5 @@ if __name__ == "__main__":
     for i in range(1000):
         (img, _) = captureCanCentroids(picam2)
         displayImg(img)
-    
+
     picam2.stop()

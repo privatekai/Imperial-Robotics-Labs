@@ -5,9 +5,7 @@ from __future__ import division
 
 import brickpi3
 
-# Calibration constants (update these after running calibration)
-SCALE_CALIBRATED = 1.0127
-OFFSET_CALIBRATED = 3.7975
+from constants import SCALE_CALIBRATED, OFFSET_CALIBRATED
 
 
 class SonarSensor:
@@ -124,7 +122,7 @@ def calibrate_sensor(bp_instance, port=None):
     # Print results
     print("Calibration complete!")
     print()
-    print("Update sonarSensor.py with these values:")
+    print("Update constants.py with these values:")
     print(f"SCALE_CALIBRATED = {scale:.4f}")
     print(f"OFFSET_CALIBRATED = {offset:.4f}")
     print()
@@ -136,7 +134,7 @@ if __name__ == "__main__":
     Run calibration when sonarSensor.py is executed directly.
     Usage: python3 sonarSensor.py
     """
-    BP = brickpi3.BrickPi3()
+    from constants import BP
     try:
         calibrate_sensor(BP)
     finally:
