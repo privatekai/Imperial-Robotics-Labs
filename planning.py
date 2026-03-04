@@ -87,11 +87,16 @@ def semicircle(x = 0, y = 0, theta = FORWARD_THETA):
 def scorePosition(new_x, new_y, barriers, x = 0, y = 0):
 
     # math math math...
+    dx = new_x - x
+    dy = new_y - y
+    score = dx * math.cos(math.radians(FORWARD_THETA)) + dy * math.sin(math.radians(FORWARD_THETA))
+
     closest_barrier = calculateClosestObstacleDistance(new_x, new_y, barriers)
+    if not closest_barrier:
+        return score
+    
     c_x, c_y = closest_barrier # assuming x = 0, y = 0 for the can coordinates
-    new_x -= x
-    new_y -= y
-    proj_x, proj_y = projection(new_x, new_y, c_x, c_y)
+    proj_x, proj_y = projection(dx, dy, c_x, c_y)
     barrier_distance = magnitude(proj_x - c_x, proj_y - c_y)
 
     print(f"projected movement: ({proj_x}, {proj_y})")
@@ -99,7 +104,6 @@ def scorePosition(new_x, new_y, barriers, x = 0, y = 0):
     print(f"distance to barrier: {barrier_distance}")
     
     # Calculate score
-    score = new_x * math.cos(math.radians(FORWARD_THETA)) + new_y * math.sin(math.radians(FORWARD_THETA))
     if barrier_distance < BARRIER_RADIUS + ROBOT_RADIUS:
         print(">>>>>>>too close!!!!") 
         score = float("-inf")
