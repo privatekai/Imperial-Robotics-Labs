@@ -46,7 +46,7 @@ GOAL_TOLERANCE = 5.0                    # used by: planning  (cm)
 MAX_BARRIERS = 20                       # used by: planning
 FORWARDWEIGHT = 12                      # used by: planning
 OBSTACLEWEIGHT = 24                     # used by: planning
-SPEEDWEIGHT = 4.0                       # used by: planning
+SPEEDWEIGHT = 0.0                       # used by: planning
 TAU = 1.5                               # used by: planning  (seconds)
 DEDUP_RADIUS = BARRIERRADIUS + 2.0      # used by: planning  (cm)
 

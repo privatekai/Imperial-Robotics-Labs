@@ -105,6 +105,14 @@ def dwa_choose_velocities(x, y, theta, vL, vR, verbose=False):
     best_obs_cost = 0.0
     best_obs_dist = float('inf')
 
+    with open("barrier_out.txt", "a") as f:
+        f.write("--- BARRIERS --- \n")
+        for barrier in barriers:
+            f.write(str(barrier) + "\n")
+        f.write("--- ROBOT POS --- \n")
+        f.write("pos: " + str(x) + ", " + str(y) + ", " + str(theta) + "\n")
+        f.close()
+
     for vLpossible in vLpossiblearray:
         for vRpossible in vRpossiblearray:
             if abs(vLpossible) <= MAXVELOCITY and abs(vRpossible) <= MAXVELOCITY:
@@ -130,11 +138,21 @@ def dwa_choose_velocities(x, y, theta, vL, vR, verbose=False):
 
                 if distanceToObstacle < SAFEDIST:
                     obstacleCost = OBSTACLEWEIGHT * (SAFEDIST - distanceToObstacle)
-                    speed = (abs(vLpossible) + abs(vRpossible)) / 2.0
+                    speed = ((vLpossible) + (vRpossible)) / 2.0
                     speedCost = SPEEDWEIGHT * speed * (SAFEDIST - distanceToObstacle) / SAFEDIST
                 else:
                     obstacleCost = 0.0
                     speedCost = 0.0
+                
+                with open("planning_out.txt", "a") as f:
+                    f.write("--- CANDIDATE --- \n")
+                    f.write("vL: " + str(vLpossible) + "\n")
+                    f.write("vR: " + str(vRpossible) + "\n")
+                    f.write("distance benefit: " + str(distanceBenefit) + "\n")
+                    f.write("obstacle cost: " + str(obstacleCost) + "\n")
+                    f.write("speed cost: " + str(speedCost) + "\n")
+                    
+                    f.close()
 
                 benefit = distanceBenefit - obstacleCost - speedCost
                 if benefit > bestBenefit:
@@ -155,6 +173,12 @@ def dwa_choose_velocities(x, y, theta, vL, vR, verbose=False):
         'best_obs_cost': best_obs_cost,
         'best_obs_dist': best_obs_dist,
     }
+
+    with open("barrier_out.txt", "a") as f:
+        f.write("--- CHOSEN --- \n")
+        f.write("vL: " + str(vLchosen) + ", vR: " + str(vRchosen) + "\n")
+        f.write("bestForward: " + str(best_forward) + ", bestObstacleCost: " + str(best_obs_cost) + "\n")
+        f.close()
 
     if verbose:
         dist_to_target = math.sqrt((x - target[0])**2 + (y - target[1])**2)
