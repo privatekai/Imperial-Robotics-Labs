@@ -35,7 +35,7 @@ barriers = []
 
 def cm_per_sec_to_dps(v_cm):
     """Convert velocity in cm/s to motor degrees per second."""
-    return (v_cm / WHEEL_CIRCUMFERENCE_CM) * 360.0
+    return - (v_cm / WHEEL_CIRCUMFERENCE_CM) * 360.0
 
 
 def encoder_deg_to_cm(deg):
