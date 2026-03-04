@@ -140,7 +140,7 @@ while(1):
 
     # Note: Probably still need another fail safe to ensure that we don't add extra barriers
     # But should be okay for now
-    barriers = [HtransformUVtoXY(HInv, lowest_point[1], -lowest_point[0]) for (*_ , lowest_point) in canCentroids]
+    barriers = [HtransformUVtoXY(HInv, lowest_point[0], lowest_point[1]) for (*_ , lowest_point) in canCentroids]
 
     f_type = "w" if debug_i == 0 else "a"
     with open("barriers_out.txt", f_type) as f:
