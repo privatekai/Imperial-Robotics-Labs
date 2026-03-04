@@ -17,7 +17,7 @@ MOVEMENT_DIST = 20
 FORWARD_THETA = 0
 
 SEMICIRCLE_FIDELITY = 11 # number of evaluated points on the evaluated the circle
-SEMICIRCLE_RADIUS = 40 # in cm
+SEMICIRCLE_RADIUS = 35 # in cm
 SEMICIRCLE_RANGE = 180 # range of angles in the semicircle
 SEMICIRCLE_STEP = SEMICIRCLE_RANGE / (SEMICIRCLE_FIDELITY - 1)
 
@@ -86,38 +86,21 @@ def semicircle(x = 0, y = 0, theta = FORWARD_THETA):
     return semicircle_positions
 
 def scorePosition(pred_h, pred_v, barriers):
-
-    # math math math...
     score = pred_v
 
-    closest_barrier = calculateClosestObstacleDistance(pred_v, pred_h, barriers)
-    if not closest_barrier:
+    closest_barriers = calculate3ClosestObstacleDistance(pred_v, pred_h, barriers)
+    if not closest_barriers:
         return score
     
-    b_v, b_h, b_w = closest_barrier # assuming x = 0, y = 0 for the can coordinates
-    # proj_h, proj_v = projection(pred_h, pred_v, b_h, b_v)
-    # barrier_distance = magnitude(proj_h - b_h, proj_v - b_v)
+    for closest_barrier in closest_barriers:
+        b_v, b_h, b_w = closest_barrier # assuming x = 0, y = 0 for the can coordinates
 
-    # print(f"projected movement: ({proj_h}, {proj_v})")
-    # print(f"closest barrier: ({b_h}, {b_v})")
-    # print(f"distance to barrier: {barrier_distance}")
+        h1 = b_h - b_w/2 - ROBOT_RADIUS
+        h2 = b_h + b_w/2 + ROBOT_RADIUS
+        v = b_v - BARRIER_RADIUS - ROBOT_RADIUS
 
-    # check if intersects, if so, score = -inf
-
-    # Calculate score
-    # if proj_v >= SEMICIRCLE_RADIUS:
-    #     if barrier_distance < BARRIER_RADIUS + ROBOT_RADIUS:
-    #         print(">>>>>>>too close!!!!") 
-    #         score = float("-inf")
-    #     elif CAN_H_UNCERTAINTY - barrier_distance > 0: # Pick better x uncertainty here
-    #         print(">>>>>>>add some cost...")
-    #         score -= CAN_H_UNCERTAINTY - barrier_distance # Cost of hitting can
-    h1 = b_h - b_w/2 - ROBOT_RADIUS
-    h2 = b_h + b_w/2 + ROBOT_RADIUS
-    v = b_v - BARRIER_RADIUS - ROBOT_RADIUS
-
-    if pred_h > h1 and pred_h < h2 and pred_v > v:
-        score = float("-inf")
+        if pred_h > h1 and pred_h < h2 and pred_v > v:
+            score = float("-inf")
 
     return score
 
@@ -142,93 +125,76 @@ def calculateClosestObstacleDistance(vertical, horizontal, barriers):
             closest_barrier = barrier
     return closest_barrier
 
+def calculate3ClosestObstacleDistance(vertical, horizontal, barriers):
+    def dist(x, y):
+        dv = barrier[0] - vertical
+        dh = barrier[1] - horizontal
+        d = math.sqrt(dv**2 + dh**2)
+        # Distance between closest touching point of circular robot and circular barrier
+        dist = d - BARRIER_RADIUS - ROBOT_RADIUS
+        return dist
+
+
+    barriers.sort(key=lambda x, y, _: dist(x,y))
+    to_take = min(len(barriers), 3)
+    closest_barriers3 = barriers[:to_take]
+
+    return closest_barriers3
+
 semicircle_positions = semicircle()
 
-# Main loop
-debug_i = 0
-while(1):
-    # Check if any new barriers are visible from current pose -> i.e. run our camera object detection code here
-    (img, canCentroids) = captureCanCentroids(picam2)
-    drawGridOnImage(img)
+if __name__ == "__main__":
+    try:
+        # Main loop
+        debug_i = 0
+        while(1):
+            # Check if any new barriers are visible from current pose -> i.e. run our camera object detection code here
+            (img, canCentroids) = captureCanCentroids(picam2)
+            drawGridOnImage(img)
 
-    # Note: Probably still need another fail safe to ensure that we don't add extra barriers
-    # But should be okay for now
-    # barriers = [(HtransformUVtoXY(HInv, lowest_point[0], lowest_point[1])) for (*_ , lowest_point) in canCentroids]
-    barriers = []
-    for (_, _, w, _, _, lowest_point) in canCentroids:
-        (v, h) = HtransformUVtoXY(HInv, lowest_point[0], lowest_point[1])
-        barriers.append((v, h, w))
-        
-    # barrier: (vertical, horizontal)
+            # Note: Probably still need another fail safe to ensure that we don't add extra barriers
+            # But should be okay for now
+            # barriers = [(HtransformUVtoXY(HInv, lowest_point[0], lowest_point[1])) for (*_ , lowest_point) in canCentroids]
+            barriers = []
+            for (_, _, w, _, _, lowest_point) in canCentroids:
+                (v, h) = HtransformUVtoXY(HInv, lowest_point[0], lowest_point[1])
+                barriers.append((v, h, w))
+                
+            # barrier: (vertical, horizontal)
 
-    f_type = "w" if debug_i == 0 else "a"
-    with open("barriers_out.txt", f_type) as f:
-        f.write("--- BARRIERS --- (note: barrier format)\n")
-        f.write("loop number " + str(debug_i) + "\n")
-        for barrier in barriers:
-            f.write(str(barrier) + "\n")
-        f.close()
+            f_type = "w" if debug_i == 0 else "a"
+            with open("barriers_out.txt", f_type) as f:
+                f.write("--- BARRIERS --- (note: barrier format)\n")
+                f.write("loop number " + str(debug_i) + "\n")
+                for barrier in barriers:
+                    f.write(str(barrier) + "\n")
+                f.close()
 
-    best_angle = 0
-    best_score = float("-inf")
-    for i in range(len(semicircle_positions)):
-        (horizontal, vertical, angle) = semicircle_positions[i]
-        score = scorePosition(horizontal, vertical, barriers)
+            best_angle = 0
+            best_score = float("-inf")
+            for i in range(len(semicircle_positions)):
+                (horizontal, vertical, angle) = semicircle_positions[i]
+                score = scorePosition(horizontal, vertical, barriers)
 
-        print(f"horizontal: {horizontal}, vertical: {vertical}, theta: {angle}")
-        print("score: ", score)
-        if score > best_score:
-            best_angle = angle
-            best_score = score
+                print(f"horizontal: {horizontal}, vertical: {vertical}, theta: {angle}")
+                print("score: ", score)
+                if score > best_score:
+                    best_angle = angle
+                    best_score = score
 
-    print(f"SELECTED MOV - theta: {best_angle}")
+            print(f"SELECTED MOV - theta: {best_angle}")
 
-    turnAntiClockwise(best_angle)
-    forward(MOVEMENT_DIST * 10)
-    turnAntiClockwise(-best_angle)
+            turnAntiClockwise(best_angle)
+            forward(MOVEMENT_DIST * 10)
+            turnAntiClockwise(-best_angle)
 
-    debug_i += 1
-    
-    # for (x, y, w, h, area, lowest_point) in canCentroids:
+            debug_i += 1
 
-    #     # This is relevant to the camera coords - make it in perspective to the robot position
-    #     (lowest_x, lowest_y) =  HtransformUVtoXY(HInv, lowest_point[0], lowest_point[1])
-    #     (lowest_x, lowest_y) =  (lowest_x + x, lowest_y + y)
+    finally:
+        BP.reset_all()
+        picam2.stop()
+        print("Motors reset. Camera stopped.")
 
-    #     # Update to barriers
-    #     i = 0
-    #     while i < len(barriers):
-    #         (barrier_x, barrier_y) = barriers[i]
-    #         # Check if barrier already exists in barriers
-    #         if abs(barrier_x - lowest_x) < BARRIER_RADIUS + B_UNCERTAINTY and abs(barrier_y - lowest_y) < RADIUS + B_UNCERTAINTY:
-    #             barriers.remove(i)
-    #             barriers.append((lowest_x, lowest_y))
-    #             break
-    #         i += 1
-        
-    #     # Add to barriers if not there before
-    #     if i == len(barriers):
-    #         barriers.append((lowest_x, lowest_y))
-
-    #     # Coords to draw blob on image output
-    #     display_x, display_y = int(lowest_point[0]), int(lowest_point[1])
-
-    #     # Draw a little circle to show each detected blob
-    #     img = cv2.circle(img, (display_x, display_y), 5, WHITE, 3)
-
-    #     # Also print its coordinates on the image
-    #     pstring = "(" + str(lowest_x) + "," + str(lowest_y) + ")"
-    #     img = cv2.putText(img, pstring, (display_x + 8, display_y), FONT, 0.5, WHITE, 1, cv2.LINE_AA)
-        
-    #     print(lowest_point, "-->", barriers[-1])
-
-    # displayImg(img) # Prints to web interface
-
-    # Planning
-    # We want to find the best benefit where we have a positive component for closeness to target,
-    # and a negative component for closeness to obstacles, for each of a choice of possible actions
-
-picam2.stop()
     # TODO: move forward using vL and vR
     # TODO: (optional) Check if we are touching something, and readjust barriers list if so, as well as correct current position.
     # TODO: Check if we are at target, as weloop this function until at target
