@@ -169,19 +169,19 @@ def dwa_choose_velocities(x, y, theta, vL, vR, verbose=False):
                     f.write("vL: " + str(vLpossible) + "\n")
                     f.write("vR: " + str(vRpossible) + "\n")
                     f.write("distance benefit: " + str(distanceBenefit) + "\n")
-                    f.write("movement-to-target benefit: " + str(headingBenefit) + "\n")
+                    # f.write("movement-to-target benefit: " + str(headingBenefit) + "\n")
                     f.write("obstacle cost: " + str(obstacleCost) + "\n")
                     f.write("speed cost: " + str(speedCost) + "\n")
 
                     f.close()
 
-                benefit = distanceBenefit + headingBenefit - obstacleCost - speedCost
+                benefit = distanceBenefit - obstacleCost - speedCost
                 if benefit > bestBenefit:
                     vLchosen = vLpossible
                     vRchosen = vRpossible
                     bestBenefit = benefit
                     best_forward = distanceBenefit
-                    best_heading = headingBenefit
+                    best_heading = 0.0
                     best_obs_cost = obstacleCost
                     best_speed_cost = speedCost
                     best_obs_dist = distanceToObstacle
