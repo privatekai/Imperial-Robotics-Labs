@@ -95,7 +95,7 @@ def dwa_choose_velocities(x, y, theta, vL, vR, verbose=False):
     vLchosen = vL
     vRchosen = vR
 
-    steps = [i/5 * MAXACCELERATION * dt for i in range(-4, 5)]
+    steps = [i * MAXACCELERATION * dt for i in range(-4, 5)]
     vLpossiblearray = list(set([vL + s for s in steps]) - set([0]))
     vRpossiblearray = list(set([vR + s for s in steps]) - set([0]))
 
