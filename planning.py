@@ -79,7 +79,9 @@ def semicircle(x = 0, y = 0, theta = 90):
     
     return semicircle_positions
 
-def scorePosition(x = 0, y = 0, new_x, new_y, barriers):
+def scorePosition(new_x, new_y, barriers, x = 0, y = 0):
+
+    # math math math...
     closest_barrier = calculateClosestObstacleDistance(x, y, barriers)
     c_x, c_y = closest_barrier # assuming x = 0, y = 0 for the can coordinates
     new_x -= x
@@ -87,9 +89,15 @@ def scorePosition(x = 0, y = 0, new_x, new_y, barriers):
     proj_x, proj_y = projection(new_x, new_y, c_x, c_y)
     distance = magnitude(proj_x - c_x, proj_y - c_y)
     
-    # TODO:
-    
-    
+    # Calculate score
+    score = y
+    if distance < BARRIER_RADIUS: 
+        score = float("-inf")
+    elif CAN_X_UNCERTAINTY - distance > 0: # Pick better x uncertainty here
+        score -= CAN_X_UNCERTAINTY - distance # Cost of hitting can
+
+    return score
+
 
 # Function to calculate the closest obstacle at a position (x, y)
 # Used during planning
@@ -111,6 +119,7 @@ def calculateClosestObstacleDistance(x, y, barriers):
                 closest_barrier = barrier
     return closest_barrier
 
+semicircle_positions = semicircle()
 
 # Main loop
 while(1):
@@ -118,40 +127,56 @@ while(1):
     (img, canCentroids) = captureCanCentroids(picam2)
     drawGridOnImage(img)
 
-    for (x, y, w, h, area, lowest_point) in canCentroids:
+    # Note: Probably still need another fail safe to ensure that we don't add extra barriers
+    # But should be okay for now
+    barriers = [HtransformUVtoXY(HInv, lowest_point[0], lowest_point[1]) for (*_ , lowest_point) in canCentroids]
 
-        # This is relevant to the camera coords - make it in perspective to the robot position
-        (lowest_x, lowest_y) =  HtransformUVtoXY(HInv, lowest_point[0], lowest_point[1])
-        (lowest_x, lowest_y) =  (lowest_x + x, lowest_y + y)
+    best_score_index = (0,0)
+    for i in range(len(semicircle_positions)):
+        (x,y) = semicircle_positions[i]
+        score = scorePosition(x, y, barriers)
+        if score > best_score_index:
+            best_score_index = (score, i)
 
-        # Update to barriers
-        i = 0
-        while i < len(barriers):
-            (barrier_x, barrier_y) = barriers[i]
-            # Check if barrier already exists in barriers
-            if abs(barrier_x - lowest_x) < RADIUS + B_UNCERTAINTY and abs(barrier_y - lowest_y) < RADIUS + B_UNCERTAINTY:
-                barriers.remove(i)
-                barriers.append((lowest_x, lowest_y))
-                break
-            i += 1
+    desired_pos = semicircle_positions[best_score_index[1]]
+
+    # TODO: Turn, move forward, Turn back
+
+    
+    # for (x, y, w, h, area, lowest_point) in canCentroids:
+
+    #     # This is relevant to the camera coords - make it in perspective to the robot position
+    #     (lowest_x, lowest_y) =  HtransformUVtoXY(HInv, lowest_point[0], lowest_point[1])
+    #     (lowest_x, lowest_y) =  (lowest_x + x, lowest_y + y)
+
+    #     # Update to barriers
+    #     i = 0
+    #     while i < len(barriers):
+    #         (barrier_x, barrier_y) = barriers[i]
+    #         # Check if barrier already exists in barriers
+    #         if abs(barrier_x - lowest_x) < BARRIER_RADIUS + B_UNCERTAINTY and abs(barrier_y - lowest_y) < RADIUS + B_UNCERTAINTY:
+    #             barriers.remove(i)
+    #             barriers.append((lowest_x, lowest_y))
+    #             break
+    #         i += 1
         
-        # Add to barriers if not there before
-        if i == len(barriers):
-            barriers.append((lowest_x, lowest_y))
+    #     # Add to barriers if not there before
+    #     if i == len(barriers):
+    #         barriers.append((lowest_x, lowest_y))
 
-        # Coords to draw blob on image output
-        display_x, display_y = int(lowest_point[0]), int(lowest_point[1])
+    #     # Coords to draw blob on image output
+    #     display_x, display_y = int(lowest_point[0]), int(lowest_point[1])
 
-        # Draw a little circle to show each detected blob
-        img = cv2.circle(img, (display_x, display_y), 5, WHITE, 3)
+    #     # Draw a little circle to show each detected blob
+    #     img = cv2.circle(img, (display_x, display_y), 5, WHITE, 3)
 
-        # Also print its coordinates on the image
-        pstring = "(" + str(lowest_x) + "," + str(lowest_y) + ")"
-        img = cv2.putText(img, pstring, (display_x + 8, display_y), FONT, 0.5, WHITE, 1, cv2.LINE_AA)
+    #     # Also print its coordinates on the image
+    #     pstring = "(" + str(lowest_x) + "," + str(lowest_y) + ")"
+    #     img = cv2.putText(img, pstring, (display_x + 8, display_y), FONT, 0.5, WHITE, 1, cv2.LINE_AA)
         
-        print(lowest_point, "-->", barriers[-1])
+    #     print(lowest_point, "-->", barriers[-1])
 
-    displayImg(img) # Prints to web interface
+    # displayImg(img) # Prints to web interface
 
     # Planning
     # We want to find the best benefit where we have a positive component for closeness to target,
