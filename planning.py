@@ -99,7 +99,7 @@ def scorePosition(new_x, new_y, barriers, x = 0, y = 0):
     elif CAN_X_UNCERTAINTY - distance > 0: # Pick better x uncertainty here
         score -= CAN_X_UNCERTAINTY - distance # Cost of hitting can
 
-    print("x: " + new_x + " y: " + new_y)
+    print("x: " + str(new_x) + " y: " + str(new_y))
     print("score: ", score)
 
     return score
