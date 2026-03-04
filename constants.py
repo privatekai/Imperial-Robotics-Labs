@@ -38,7 +38,7 @@ TIMEOUT = 60                            # used by: motion  (seconds)
 
 # -- DWA / Planning ------------------------------------------------------------
 ROBOTRADIUS = 10.0                      # used by: planning  (cm)
-BARRIERRADIUS = 3.3                     # used by: planning  (cm)
+B_RADIUS = 3.3                     # used by: planning  (cm)
 SAFEDIST = 15.0                         # used by: planning  (cm)
 MAXVELOCITY = 20.0                      # used by: planning  (cm/s)
 MAXACCELERATION = 10.0                  # used by: planning  (cm/s^2)
@@ -48,7 +48,10 @@ FORWARDWEIGHT = 12                      # used by: planning
 OBSTACLEWEIGHT = 24                     # used by: planning
 SPEEDWEIGHT = 0.0                       # used by: planning
 TAU = 1.5                               # used by: planning  (seconds)
-DEDUP_RADIUS = BARRIERRADIUS + 10.0      # used by: planning  (cm)
+# DEDUP_RADIUS = BARRIERRADIUS + 10.0      # used by: planning  (cm)
+Y_UNCERTAINTY = 15
+X_UNCERTAINTY = 5
+CAM_DIST = 90
 
 # -- Particle filter -----------------------------------------------------------
 NUM_PARTICLES = 100                     # used by: particleDataStructures

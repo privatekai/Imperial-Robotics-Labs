@@ -9,11 +9,11 @@ from constants import (
     BP, LEFT_MOTOR_PORT as LEFT_PORT, RIGHT_MOTOR_PORT as RIGHT_PORT,
     LEFT_TOUCH_PORT, RIGHT_TOUCH_PORT,
     WHEEL_CIRCUMFERENCE_CM, WHEELBASE_CM,
-    ROBOTRADIUS, BARRIERRADIUS, SAFEDIST,
+    ROBOTRADIUS, B_RADIUS, SAFEDIST,
     MAXVELOCITY, MAXACCELERATION,
     GOAL_TOLERANCE, MAX_BARRIERS,
     FORWARDWEIGHT, OBSTACLEWEIGHT, SPEEDWEIGHT, TAU,
-    DEDUP_RADIUS, WHITE,
+    WHITE, Y_UNCERTAINTY, X_UNCERTAINTY, CAM_DIST
 )
 
 # Start camera
@@ -67,7 +67,7 @@ def predictPosition(vL, vR, x, y, theta, deltat):
 def add_barrier(world_x, world_y):
     """Add a barrier if not a duplicate of an existing one."""
     for (bx, by) in barriers:
-        if math.sqrt((bx - world_x)**2 + (by - world_y)**2) < DEDUP_RADIUS:
+        if abs(bx - world_x) < B_RADIUS + X_UNCERTAINTY and abs(by - world_y) < B_RADIUS + Y_UNCERTAINTY:
             return False
     barriers.append((world_x, world_y))
     return True
@@ -80,7 +80,7 @@ def calculateClosestObstacleDistance(x, y):
         dx = barrier[0] - x
         dy = barrier[1] - y
         d = math.sqrt(dx**2 + dy**2)
-        dist = d - BARRIERRADIUS - ROBOTRADIUS
+        dist = d - B_RADIUS - ROBOTRADIUS
         if dist < closestdist:
             closestdist = dist
     return closestdist
@@ -241,6 +241,8 @@ def main():
             for (*_, lowest_point) in canCentroids:
                 # Transform pixel coords to camera-frame ground plane (cm)
                 (cam_x, cam_y) = HtransformUVtoXY(HInv, lowest_point[0], lowest_point[1])
+                if cam_y > CAM_DIST: # centroid is too far away, consider if closer
+                    continue
 
                 # Transform camera-frame to world-frame using robot pose + heading
                 # cam_x = forward (along robot facing), cam_y = lateral
