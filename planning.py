@@ -340,8 +340,8 @@ def main():
     theta = math.pi / 2  # facing +y (toward target)
 
     # Initial velocities (cm/s)
-    vL = 1.0
-    vR = 1.0
+    vL = 0.0
+    vR = 0.0
 
     # Reset encoders to zero
     BP.offset_motor_encoder(LEFT_PORT, BP.get_motor_encoder(LEFT_PORT))
@@ -440,9 +440,9 @@ def main():
                     # motion.forward(particles, -50)
                     # Turn 45° away from the hit side
                     if left_touch:
-                        motion.turnAntiClockwise(None, -45)  # turn clockwise
+                        turnAntiClockwise(None, -45)  # turn clockwise
                     else:
-                        motion.turnAntiClockwise(None, 45)   # turn anticlockwise
+                        turnAntiClockwise(None, 45)   # turn anticlockwise
                     # Re-read pose from encoders after recovery manoeuvre
             except (BP_SENSOR_ERROR, IOError):
                 pass
