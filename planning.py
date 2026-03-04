@@ -6,13 +6,13 @@ from picameracans import captureCanCentroids, displayImg, FONT
 from picamerahomographygrid import drawGridOnImage, HtransformUVtoXY, HInv
 
 from constants import (
-    BP, LEFT_MOTOR_PORT as LEFT_PORT, RIGHT_MOTOR_PORT as RIGHT_PORT,
-    LEFT_TOUCH_PORT, RIGHT_TOUCH_PORT,
+    ANGLE_ERROR, BP, BP_SENSOR_ERROR, LEFT_MOTOR_PORT as LEFT_PORT, PI, POSITION_TOLERANCE, RIGHT_MOTOR_PORT as RIGHT_PORT,
+    LEFT_TOUCH_PORT, RIGHT_TOUCH_PORT, TIMEOUT, TURNING_SPEED, WHEEL_CIRCUMFERENCE,
     WHEEL_CIRCUMFERENCE_CM, WHEELBASE_CM,
     ROBOTRADIUS, B_RADIUS, SAFEDIST,
     MAXVELOCITY, MAXACCELERATION,
     GOAL_TOLERANCE, MAX_BARRIERS,
-    FORWARDWEIGHT, OBSTACLEWEIGHT, SPEEDWEIGHT, HEADINGWEIGHT, TAU,
+    FORWARDWEIGHT, OBSTACLEWEIGHT, SPEEDWEIGHT, HEADINGWEIGHT, TAU, WHEELBASE_WIDTH,
     WHITE, Y_UNCERTAINTY, X_UNCERTAINTY, CAM_DIST
 )
 
@@ -233,6 +233,100 @@ def update_pose(x, y, theta, dL_cm, dR_cm):
     theta_new = (theta_new + math.pi) % (2 * math.pi) - math.pi
     return x_new, y_new, theta_new
 
+def turnAntiClockwise(particles, angle: float):
+    """
+    Turn the robot on the spot around its center (between the wheels).
+    Positive angle = anticlockwise turn (standard math convention: 0°=right, 90°=up).
+    For differential drive turning on the spot:
+    - Each wheel travels in an arc with radius = WHEELBASE_WIDTH / 2
+    - Arc length = angle_radians * radius
+    """
+    # Convert angle to radians
+    angle_rad = angle * PI / 180.0
+
+    # Calculate arc length each wheel must travel (radius = half wheelbase)
+    arc_length = angle_rad * (WHEELBASE_WIDTH + ANGLE_ERROR) / 2.0
+
+    # Convert arc length to encoder degrees
+    offset = (arc_length / WHEEL_CIRCUMFERENCE) * 360.0
+
+    try:    # Unconfigure the sensors, disable the motors, and restore the LED to the control of the BrickPi3 firmware.
+        # Reset both encoders to 0 for clean starting positions
+        BP.offset_motor_encoder(LEFT_PORT, BP.get_motor_encoder(LEFT_PORT))
+        BP.offset_motor_encoder(RIGHT_PORT, BP.get_motor_encoder(RIGHT_PORT))
+
+        # Set speed limits for turning
+        BP.set_motor_limits(LEFT_PORT, 50, TURNING_SPEED)
+        BP.set_motor_limits(RIGHT_PORT, 50, TURNING_SPEED)
+
+        # Left wheel backward, right wheel forward (for anticlockwise turn)
+        left_target = -offset
+        right_target = offset
+
+        print("Turning %f degrees anticlockwise\nLeft target: %f, Right target: %f" %
+              (angle, left_target, right_target))
+
+        # Set both motor positions (opposite directions for turning on the spot)
+        BP.set_motor_position(LEFT_PORT, left_target)
+        BP.set_motor_position(RIGHT_PORT, right_target)
+
+        wait_for_motor_position(left_target, right_target)
+
+        # Update particles
+        particles.turn(angle)
+
+        print("Turn completed\n")
+
+    except IOError as error:
+        print("IOError in turnAntiClockwise: %s" % error)
+
+
+def wait_for_motor_position(left_target, right_target):
+    """
+    Wait for motors to reach their target positions.
+    Checks actual encoder positions instead of just waiting a fixed time.
+    Returns True if targets reached, False if timeout occurred.
+    """
+    start_time = time.time()
+    last_print_time = start_time
+
+    while time.time() - start_time < TIMEOUT:
+        try:
+            left_current = BP.get_motor_encoder(LEFT_PORT)
+            right_current = BP.get_motor_encoder(RIGHT_PORT)
+
+            left_error = abs(left_target - left_current)
+            right_error = abs(right_target - right_current)
+
+            # Print progress every 0.5 seconds
+            if time.time() - last_print_time > 0.5:
+                print("Waiting... L=%d (target=%.1f, error=%.1f), R=%d (target=%.1f, error=%.1f)" %
+                      (left_current, left_target, left_error, right_current, right_target, right_error))
+                last_print_time = time.time()
+
+            # Check if both motors are within tolerance
+            if left_error < POSITION_TOLERANCE and right_error < POSITION_TOLERANCE:
+                print("Position reached: L=%d (target=%.1f, error=%.1f), R=%d (target=%.1f, error=%.1f)" %
+                      (left_current, left_target, left_error, right_current, right_target, right_error))
+                return True
+
+            # Small sleep to avoid hammering the I2C bus
+            time.sleep(0.05)
+
+        except IOError as error:
+            print("IOError in wait_for_motor_position: %s" % error)
+            time.sleep(0.1)
+
+    # Timeout occurred
+    try:
+        left_current = BP.get_motor_encoder(LEFT_PORT)
+        right_current = BP.get_motor_encoder(RIGHT_PORT)
+        print("WARNING: Timeout after %d seconds! Current: L=%d (target=%.1f), R=%d (target=%.1f)" %
+              (TIMEOUT, left_current, left_target, right_current, right_target))
+    except IOError as error:
+        print("IOError getting final positions: %s" % error)
+
+    return False
 
 def main():
     global barriers
@@ -330,25 +424,25 @@ def main():
             print("  loop_time: %.0f ms" % (loop_time * 1000))
 
             # --- Bump sensor polling (TODO: enable when sensors are connected) ---
-            # try:
-            #     left_touch = BP.get_sensor(LEFT_TOUCH_PORT)
-            #     right_touch = BP.get_sensor(RIGHT_TOUCH_PORT)
-            #     if left_touch or right_touch:
-            #         # Stop immediately
-            #         BP.set_motor_dps(LEFT_PORT, 0)
-            #         BP.set_motor_dps(RIGHT_PORT, 0)
-            #         time.sleep(0.2)
-            #         # Reverse ~5cm (50mm)
-            #         from particleDataStructures import Particles, Canvas
-            #         # motion.forward(particles, -50)
-            #         # Turn 45° away from the hit side
-            #         if left_touch:
-            #             motion.turnAntiClockwise(None, -45)  # turn clockwise
-            #         else:
-            #             motion.turnAntiClockwise(None, 45)   # turn anticlockwise
-            #         # Re-read pose from encoders after recovery manoeuvre
-            # except (brickpi3.SensorError, IOError):
-            #     pass
+            try:
+                left_touch = BP.get_sensor(LEFT_TOUCH_PORT)
+                right_touch = BP.get_sensor(RIGHT_TOUCH_PORT)
+                if left_touch or right_touch:
+                    # Stop immediately
+                    BP.set_motor_dps(LEFT_PORT, 0)
+                    BP.set_motor_dps(RIGHT_PORT, 0)
+                    time.sleep(0.2)
+                    # Reverse ~5cm (50mm)
+                    from particleDataStructures import Particles, Canvas
+                    # motion.forward(particles, -50)
+                    # Turn 45° away from the hit side
+                    if left_touch:
+                        motion.turnAntiClockwise(None, -45)  # turn clockwise
+                    else:
+                        motion.turnAntiClockwise(None, 45)   # turn anticlockwise
+                    # Re-read pose from encoders after recovery manoeuvre
+            except (BP_SENSOR_ERROR, IOError):
+                pass
 
     finally:
         BP.reset_all()

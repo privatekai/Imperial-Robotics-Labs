@@ -8,6 +8,7 @@ import brickpi3
 
 # -- Hardware ------------------------------------------------------------------
 BP = brickpi3.BrickPi3()
+BP_SENSOR_ERROR = brickpi3.SensorError
 
 # Motor ports                          # used by: motion, planning, navigation
 LEFT_MOTOR_PORT = BP.PORT_B
@@ -15,7 +16,7 @@ RIGHT_MOTOR_PORT = BP.PORT_C
 
 # Sensor ports                         # used by: planning (commented-out bump)
 LEFT_TOUCH_PORT = BP.PORT_1
-RIGHT_TOUCH_PORT = BP.PORT_4
+RIGHT_TOUCH_PORT = BP.PORT_2
 
 # -- Wheel geometry (mm) ------------------------------------------------------
 PI = 3.14159627                         # used by: motion
