@@ -31,6 +31,7 @@ WHEELBASE_CM = WHEELBASE_WIDTH / 10.0
 # -- Motion calibration -------------------------------------------------------
 DISTANCE_ERROR = -1.15 * PI             # used by: motion  (mm)
 ANGLE_ERROR = -3.074                    # used by: motion  (degrees)
+TURN_SCALE = 90.0 / 80.0               # used by: planning  (corrects ~10° underestimate per 90°)
 MOVEMENT_SPEED = 400                    # used by: motion, navigation  (DPS)
 TURNING_SPEED = 300                     # used by: motion  (DPS)
 MINI_WAIT_TIME = 0.15                   # used by: motion  (seconds)

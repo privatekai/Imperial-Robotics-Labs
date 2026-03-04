@@ -8,7 +8,7 @@ from picamerahomographygrid import drawGridOnImage, HtransformUVtoXY, HInv
 from constants import (
     ANGLE_ERROR, BP, BP_SENSOR_ERROR, LEFT_MOTOR_PORT as LEFT_PORT, PI, POSITION_TOLERANCE, RIGHT_MOTOR_PORT as RIGHT_PORT,
     LEFT_TOUCH_PORT, RIGHT_TOUCH_PORT, TIMEOUT, TURNING_SPEED, WHEEL_CIRCUMFERENCE,
-    WHEEL_CIRCUMFERENCE_CM, WHEELBASE_CM,
+    WHEEL_CIRCUMFERENCE_CM, WHEELBASE_CM, TURN_SCALE,
     ROBOTRADIUS, B_RADIUS, SAFEDIST,
     MAXVELOCITY, MAXACCELERATION,
     GOAL_TOLERANCE, MAX_BARRIERS,
@@ -53,10 +53,10 @@ def predictPosition(vL, vR, x, y, theta, deltat):
     elif abs(vL + vR) < 1e-6:
         xnew = x
         ynew = y
-        thetanew = theta + ((vR - vL) * deltat / WHEELBASE_CM)
+        thetanew = theta + ((vR - vL) * deltat / WHEELBASE_CM) * TURN_SCALE
     else:
         R = WHEELBASE_CM / 2.0 * (vR + vL) / (vR - vL)
-        deltatheta = (vR - vL) * deltat / WHEELBASE_CM
+        deltatheta = (vR - vL) * deltat / WHEELBASE_CM * TURN_SCALE
         xnew = x + R * (math.sin(deltatheta + theta) - math.sin(theta))
         ynew = y - R * (math.cos(deltatheta + theta) - math.cos(theta))
         thetanew = theta + deltatheta
@@ -229,7 +229,7 @@ def update_pose(x, y, theta, dL_cm, dR_cm):
     """Apply one dead-reckoning step given wheel displacements in cm.
     Returns (x_new, y_new, theta_new)."""
     d_forward = (dL_cm + dR_cm) / 2.0
-    d_theta   = (dR_cm - dL_cm) / WHEELBASE_CM
+    d_theta   = (dR_cm - dL_cm) / WHEELBASE_CM * TURN_SCALE
     x_new     = x + d_forward * math.cos(theta + d_theta / 2.0)
     y_new     = y + d_forward * math.sin(theta + d_theta / 2.0)
     theta_new = theta + d_theta
