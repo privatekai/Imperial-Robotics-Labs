@@ -94,7 +94,9 @@ def scorePosition(new_x, new_y, barriers, x = 0, y = 0):
     proj_x, proj_y = projection(new_x, new_y, c_x, c_y)
     barrier_distance = magnitude(proj_x - c_x, proj_y - c_y)
 
-    print(f"distance to barrier {barrier_distance}")
+    print(f"projected movement: ({proj_x}, {proj_y})")
+    print(f"closest barrier: ({c_x}, {c_y})")
+    print(f"distance to barrier: {barrier_distance}")
     
     # Calculate score
     score = new_x * math.cos(math.radians(FORWARD_THETA)) + new_y * math.sin(math.radians(FORWARD_THETA))
