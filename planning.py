@@ -106,6 +106,7 @@ def dwa_choose_velocities(x, y, theta, vL, vR, verbose=False):
     best_forward = 0.0
     best_heading = 0.0
     best_obs_cost = 0.0
+    best_speed_cost = 0.0
     best_obs_dist = float('inf')
 
     type = "a"
@@ -182,6 +183,7 @@ def dwa_choose_velocities(x, y, theta, vL, vR, verbose=False):
                     best_forward = distanceBenefit
                     best_heading = headingBenefit
                     best_obs_cost = obstacleCost
+                    best_speed_cost = speedCost
                     best_obs_dist = distanceToObstacle
             else:
                 candidates_clamped += 1
@@ -193,6 +195,7 @@ def dwa_choose_velocities(x, y, theta, vL, vR, verbose=False):
         'best_forward': best_forward,
         'best_heading': best_heading,
         'best_obs_cost': best_obs_cost,
+        'best_speed_cost': best_speed_cost,
         'best_obs_dist': best_obs_dist,
     }
 
@@ -213,8 +216,8 @@ def dwa_choose_velocities(x, y, theta, vL, vR, verbose=False):
               (candidates_evaluated, candidates_clamped))
         print("  chosen: vL=%.2f vR=%.2f  (dps: L=%.0f R=%.0f)" %
               (vLchosen, vRchosen, cm_per_sec_to_dps(vLchosen), cm_per_sec_to_dps(vRchosen)))
-        print("  scores: benefit=%.2f  forward=%.2f  move-to-target=%.2f  obs_cost=%.2f  obs_dist=%.1f" %
-              (bestBenefit, best_forward, best_heading, best_obs_cost, best_obs_dist))
+        print("  scores: benefit=%.2f  forward=%.2f  move-to-target=%.2f  obs_cost=%.2f  obs_dist=%.1f speed_cost=%.1f" %
+              (bestBenefit, best_forward, best_heading, best_obs_cost, best_obs_dist, best_speed_cost))
         if best_obs_dist < SAFEDIST:
             print("  ** AVOIDING OBSTACLE (dist %.1f < safe %.1f) **" %
                   (best_obs_dist, SAFEDIST))
@@ -243,8 +246,8 @@ def main():
     theta = math.pi / 2  # facing +y (toward target)
 
     # Initial velocities (cm/s)
-    vL = 0.0
-    vR = 0.0
+    vL = 3.0
+    vR = 3.0
 
     # Reset encoders to zero
     BP.offset_motor_encoder(LEFT_PORT, BP.get_motor_encoder(LEFT_PORT))
