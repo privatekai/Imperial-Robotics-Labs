@@ -74,6 +74,8 @@ def semicircle(x = 0, y = 0, theta = FORWARD_THETA):
     for i in range(SEMICIRCLE_FIDELITY):
         cur_angle = least_angle + SEMICIRCLE_STEP * i
         cur_rads = math.radians(cur_angle)
+
+        print(f"CUR ANGLE: {cur_angle}")
         
         new_x = x + SEMICIRCLE_RADIUS * math.cos(cur_rads)
         new_y = y + SEMICIRCLE_RADIUS * math.sin(cur_rads)
