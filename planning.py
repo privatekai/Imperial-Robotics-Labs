@@ -102,14 +102,15 @@ def scorePosition(new_x, new_y, barriers, x = 0, y = 0):
     print(f"projected movement: ({proj_x}, {proj_y})")
     print(f"closest barrier: ({c_x}, {c_y})")
     print(f"distance to barrier: {barrier_distance}")
-    
+
     # Calculate score
-    if barrier_distance < BARRIER_RADIUS + ROBOT_RADIUS:
-        print(">>>>>>>too close!!!!") 
-        score = float("-inf")
-    elif CAN_X_UNCERTAINTY - barrier_distance > 0: # Pick better x uncertainty here
-        print(">>>>>>>add some cost...")
-        score -= CAN_X_UNCERTAINTY - barrier_distance # Cost of hitting can
+    if proj_x >= SEMICIRCLE_RADIUS:
+        if barrier_distance < BARRIER_RADIUS + ROBOT_RADIUS:
+            print(">>>>>>>too close!!!!") 
+            score = float("-inf")
+        elif CAN_X_UNCERTAINTY - barrier_distance > 0: # Pick better x uncertainty here
+            print(">>>>>>>add some cost...")
+            score -= CAN_X_UNCERTAINTY - barrier_distance # Cost of hitting can
 
     return score
 
@@ -154,8 +155,8 @@ while(1):
             f.write(str(barrier) + "\n")
         f.close()
 
-    best_angle = None
-    best_score = 0
+    best_angle = 0
+    best_score = float("-inf")
     for i in range(len(semicircle_positions)):
         (x,y,angle) = semicircle_positions[i]
         score = scorePosition(x, y, barriers)
