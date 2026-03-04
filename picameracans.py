@@ -13,7 +13,8 @@ def displayImg(img):
     cv2.imwrite("demo.jpg", img)
     print("drawImg:" + "/home/pi/prac-files/demo.jpg")
 
-def captureCanCentroids(picam, starttime=0.0):
+# Returns (img, centroid[])
+def captureCanCentroids(picam):
     img = picam.capture_array()
  
     # Convert to HSV colour space    
@@ -61,7 +62,6 @@ def captureCanCentroids(picam, starttime=0.0):
                 centroids.append((x, y, w, h, area, lowest_point))
             
     # Delete all centroids corresponding to the same coke tower
-    # Also draw centroid coordinates
     centroids.sort(key=lambda c: -c[-1][1])
     i = 0
     while i < len(centroids):
@@ -82,11 +82,6 @@ def captureCanCentroids(picam, starttime=0.0):
     # Draw Rectangles
     for (x, y, w, h, area, lowest_point) in centroids:
         img = cv2.rectangle(img, (x, y), (x+w, y+h), GREEN, 5)
-
-    # Draw image on web interface
-    # cv2.imwrite("demo.jpg", img)
-    # print("drawImg:" + "/home/pi/prac-files/demo.jpg")
-    # print("Captured image", i, "at time", time.time() - starttime)
 
     return (img, centroids)
 

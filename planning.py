@@ -1,11 +1,14 @@
 import brickpi3
 import time
+import math
 import cv2
 import numpy as np
 from picamera2 import Picamera2
 from picameracans import captureCanCentroids, displayImg, WHITE, FONT
 from picamerahomographygrid import drawGridOnImage, HtransformXYtoUV, HtransformUVtoXY, H
 # from motion import forward, turnAntiClockwise
+
+BARRIER_UNCERTAINTY = 5
 
 
 
@@ -116,33 +119,43 @@ def calculateClosestObstacleDistance(x, y):
 # Main loop
 while(1):
     # Check if any new barriers are visible from current pose -> i.e. run our camera object detection code here
-    # TODO: Add code to update barriers list by detecting can coordinates, and adding to barriers list if new.
-
-    # Draws homography grid onto image
-    # drawGridOnImage()
-
     (img, canCentroids) = captureCanCentroids(picam2)
     drawGridOnImage(img)
 
     for (x, y, w, h, area, lowest_point) in canCentroids:
 
-        # This is relevant to the camera coords - so put in perspective of robot
+        # This is relevant to the camera coords - make it in perspective to the robot position
         (lowest_x, lowest_y) =  HtransformUVtoXY(H, lowest_point[0], lowest_point[1])
+        (lowest_x, lowest_y) =  (lowest_x + x, lowest_y + y)
 
-        # x, y is robot position
-        # barriers.append((lowest_x + x, lowest_y + y))
+        # Update to barriers
+        i = 0
+        while i < len(barriers):
+            (barrier_x, barrier_y) = barriers[i]
+            # Check if barrier already exists in barriers
+            if abs(barrier_x - lowest_x) < BARRIER_UNCERTAINTY and abs(barrier_y - lowest_y) < BARRIER_UNCERTAINTY:
+                barriers.remove(i)
+                barriers.append((lowest_x, lowest_y))
+                break
+            i += 1
+        
+        # Add to barriers if not there before
+        if i == len(barriers):
+            barriers.append((lowest_x, lowest_y))
+
+        # Coords to draw blob on image output
         display_x, display_y = int(lowest_point[0]), int(lowest_point[1])
 
         # Draw a little circle to show each detected blob
         img = cv2.circle(img, (display_x, display_y), 5, WHITE, 3)
 
-        # Also print its coordinates on the image!
-        pstring = "(" + str(barriers[-1][0]) + "," + str(barriers[-1][1]) + ")"
+        # Also print its coordinates on the image
+        pstring = "(" + str(lowest_x) + "," + str(lowest_y) + ")"
         img = cv2.putText(img, pstring, (display_x + 8, display_y), FONT, 0.5, WHITE, 1, cv2.LINE_AA)
         
         print(lowest_point, "-->", barriers[-1])
 
-    displayImg(img)
+    displayImg(img) # Prints to web interface
 
     
 
