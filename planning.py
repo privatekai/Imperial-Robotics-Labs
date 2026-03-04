@@ -16,7 +16,7 @@ ROBOT_RADIUS = 10
 FORWARD_THETA = 0
 
 SEMICIRCLE_FIDELITY = 11 # number of evaluated points on the evaluated the circle
-SEMICIRCLE_RADIUS = 5 # in cm
+SEMICIRCLE_RADIUS = 20 # in cm
 SEMICIRCLE_RANGE = 180 # range of angles in the semicircle
 SEMICIRCLE_STEP = SEMICIRCLE_RANGE / (SEMICIRCLE_FIDELITY - 1)
 
@@ -96,10 +96,12 @@ def scorePosition(new_x, new_y, barriers, x = 0, y = 0):
     
     # Calculate score
     score = new_x * math.cos(math.radians(FORWARD_THETA)) + new_y * math.sin(math.radians(FORWARD_THETA))
+    print("base score:", score)
     if distance < BARRIER_RADIUS + ROBOT_RADIUS: 
         score = float("-inf")
     elif CAN_X_UNCERTAINTY - distance > 0: # Pick better x uncertainty here
         score -= CAN_X_UNCERTAINTY - distance # Cost of hitting can
+    print("score with obstacle correction:", score)
 
     return score
 
