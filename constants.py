@@ -39,7 +39,7 @@ TIMEOUT = 60                            # used by: motion  (seconds)
 # -- DWA / Planning ------------------------------------------------------------
 ROBOTRADIUS = 10.0                      # used by: planning  (cm)
 B_RADIUS = 3.3                     # used by: planning  (cm)
-SAFEDIST = 10.0                         # used by: planning  (cm)
+SAFEDIST = 12.0                         # used by: planning  (cm)
 MAXVELOCITY = 20.0                      # used by: planning  (cm/s)
 MAXACCELERATION = 10.0                  # used by: planning  (cm/s^2)
 GOAL_TOLERANCE = 5.0                    # used by: planning  (cm)
