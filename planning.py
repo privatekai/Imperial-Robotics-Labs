@@ -93,22 +93,30 @@ def scorePosition(pred_h, pred_v, barriers):
     if not closest_barrier:
         return score
     
-    b_v, b_h = closest_barrier # assuming x = 0, y = 0 for the can coordinates
-    proj_h, proj_v = projection(pred_h, pred_v, b_h, b_v)
-    barrier_distance = magnitude(proj_h - b_h, proj_v - b_v)
+    b_v, b_h, b_w = closest_barrier # assuming x = 0, y = 0 for the can coordinates
+    # proj_h, proj_v = projection(pred_h, pred_v, b_h, b_v)
+    # barrier_distance = magnitude(proj_h - b_h, proj_v - b_v)
 
-    print(f"projected movement: ({proj_h}, {proj_v})")
-    print(f"closest barrier: ({b_h}, {b_v})")
-    print(f"distance to barrier: {barrier_distance}")
+    # print(f"projected movement: ({proj_h}, {proj_v})")
+    # print(f"closest barrier: ({b_h}, {b_v})")
+    # print(f"distance to barrier: {barrier_distance}")
+
+    # check if intersects, if so, score = -inf
 
     # Calculate score
-    if proj_v >= SEMICIRCLE_RADIUS:
-        if barrier_distance < BARRIER_RADIUS + ROBOT_RADIUS:
-            print(">>>>>>>too close!!!!") 
-            score = float("-inf")
-        elif CAN_H_UNCERTAINTY - barrier_distance > 0: # Pick better x uncertainty here
-            print(">>>>>>>add some cost...")
-            score -= CAN_H_UNCERTAINTY - barrier_distance # Cost of hitting can
+    # if proj_v >= SEMICIRCLE_RADIUS:
+    #     if barrier_distance < BARRIER_RADIUS + ROBOT_RADIUS:
+    #         print(">>>>>>>too close!!!!") 
+    #         score = float("-inf")
+    #     elif CAN_H_UNCERTAINTY - barrier_distance > 0: # Pick better x uncertainty here
+    #         print(">>>>>>>add some cost...")
+    #         score -= CAN_H_UNCERTAINTY - barrier_distance # Cost of hitting can
+    h1 = b_h - b_w/2 - ROBOT_RADIUS
+    h2 = b_h + b_w/2 + ROBOT_RADIUS
+    v = b_v - BARRIER_RADIUS - ROBOT_RADIUS
+
+    if pred_h > h1 and pred_h < h2 and pred_v > v:
+        score = float("-inf")
 
     return score
 
@@ -144,7 +152,12 @@ while(1):
 
     # Note: Probably still need another fail safe to ensure that we don't add extra barriers
     # But should be okay for now
-    barriers = [HtransformUVtoXY(HInv, lowest_point[0], lowest_point[1]) for (*_ , lowest_point) in canCentroids]
+    # barriers = [(HtransformUVtoXY(HInv, lowest_point[0], lowest_point[1])) for (*_ , lowest_point) in canCentroids]
+    barriers = []
+    for (_, _, w, _, _, lowest_point) in canCentroids:
+        (v, h) = HtransformUVtoXY(HInv, lowest_point[0], lowest_point[1])
+        barriers.append((v, h, w))
+        
     # barrier: (vertical, horizontal)
 
     f_type = "w" if debug_i == 0 else "a"
@@ -167,9 +180,7 @@ while(1):
             best_angle = angle
             best_score = score
 
-    print(f"SELECTED MOV - horizontal: {horizontal}, vertical: {vertical}, theta: {best_angle}")
-
-    # TODO: Turn, move forward, Turn back
+    print(f"SELECTED MOV - theta: {best_angle}")
 
     turnAntiClockwise(best_angle)
     forward(SEMICIRCLE_RADIUS * 10)
