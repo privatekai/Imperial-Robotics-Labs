@@ -95,9 +95,9 @@ def dwa_choose_velocities(x, y, theta, vL, vR, verbose=False):
     vLchosen = vL
     vRchosen = vR
 
-    steps = [i * MAXACCELERATION * dt for i in range(1, 5, 0.5)]
-    vLpossiblearray = list(set([vL + s for s in steps]))
-    vRpossiblearray = list(set([vR + s for s in steps]))
+    steps = [i * MAXACCELERATION * dt for i in range(-4, 5)]
+    vLpossiblearray = list(set([vL + s for s in steps if vL + s != 0]))
+    vRpossiblearray = list(set([vR + s for s in steps if vR + s != 0]))
 
     goal_heading = math.atan2(target[1] - y, target[0] - x)
 
