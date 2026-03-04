@@ -151,8 +151,9 @@ def dwa_choose_velocities(x, y, theta, vL, vR, verbose=False):
                     obstacleCost = 0.0
                     speedCost = 0.0
 
-                # Project displacement onto the vector from robot to target,
-                # normalised by the max distance the robot can travel in TAU.
+                # Heading benefit: blend of displacement toward goal and
+                # final heading alignment. The alignment term is non-zero even
+                # during pure turns (where displacement is ~0).
                 to_target_x = target[0] - x
                 to_target_y = target[1] - y
                 to_target_dist = math.sqrt(to_target_x**2 + to_target_y**2)
@@ -160,7 +161,9 @@ def dwa_choose_velocities(x, y, theta, vL, vR, verbose=False):
                 dy_moved = ypredict - y
                 if to_target_dist > 0 and MAXVELOCITY * TAU > 0:
                     projection = (dx_moved * to_target_x + dy_moved * to_target_y) / to_target_dist
-                    headingBenefit = HEADINGWEIGHT * projection / (MAXVELOCITY * TAU)
+                    displacement_benefit = projection / (MAXVELOCITY * TAU)
+                    alignment = math.cos(thetapredict - goal_heading)  # 1 when facing goal, -1 when facing away
+                    headingBenefit = HEADINGWEIGHT * (0.5 * displacement_benefit + 0.5 * alignment)
                 else:
                     headingBenefit = 0.0
 
