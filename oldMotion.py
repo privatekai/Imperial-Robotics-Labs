@@ -3,7 +3,6 @@ from __future__ import division       #                           ''
 
 import time     # import the time library for the sleep function
 import brickpi3
-from particleDataStructures import WALLS, Canvas, Map, Particles
 
 # UNITS ARE MILLIMETRES
 
@@ -151,12 +150,6 @@ def turnAntiClockwise(angle: float):
 
 if __name__ == "__main__":
 
-    class DummyParticles:
-        def forward(self, x): pass
-        def turn(self, x): pass
-
-    dummy = DummyParticles()
-
     def calibrate_distance():
         global WHEEL_CIRCUMFERENCE, WHEEL_DIAMETER
         try:
@@ -166,7 +159,7 @@ if __name__ == "__main__":
             return
 
         print("Moving forward %g mm..." % dist_mm)
-        forward(dummy, dist_mm)
+        forward(dist_mm)
 
         try:
             actual_mm = float(input("Measured actual distance traveled (mm): ").strip())
@@ -197,7 +190,7 @@ if __name__ == "__main__":
             return
 
         print("Turning %g degrees anticlockwise..." % angle_deg)
-        turnAntiClockwise(dummy, angle_deg)
+        turnAntiClockwise(angle_deg)
 
         try:
             actual_deg = float(input("Measured actual angle turned (degrees): ").strip())
@@ -236,8 +229,8 @@ if __name__ == "__main__":
     #     else:
     #         print("Invalid choice.\n")
 
-    forward(dummy, 400)
-    turnAntiClockwise(dummy, 45)
-    forward(dummy, 200)
+    forward(400)
+    turnAntiClockwise(45)
+    forward(200)
 
     BP.reset_all()
