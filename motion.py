@@ -3,7 +3,6 @@ from __future__ import division       #                           ''
 
 import time     # import the time library for the sleep function
 import brickpi3
-from particleDataStructures import WALLS, Canvas, Map, Particles
 
 # UNITS ARE MILLIMETRES
 
@@ -76,7 +75,7 @@ def wait_for_motor_position(left_target, right_target):
 
     return False
 
-def forward(particles, distance: float):
+def forward(distance: float):
     target = (360 * distance) / (WHEEL_CIRCUMFERENCE + DISTANCE_ERROR)
 
     try:    # Unconfigure the sensors, disable the motors, and restore the LED to the control of the BrickPi3 firmware.
@@ -96,9 +95,6 @@ def forward(particles, distance: float):
 
         wait_for_motor_position(target, target)
 
-        # Update particles
-        particles.forward(distance/10)
-
         time.sleep(MINI_WAIT_TIME)  # Small pause after reaching target
         print("Forward movement completed\n")
 
@@ -107,7 +103,7 @@ def forward(particles, distance: float):
 
 
 
-def turnAntiClockwise(particles, angle: float):
+def turnAntiClockwise(angle: float):
     """
     Turn the robot on the spot around its center (between the wheels).
     Positive angle = anticlockwise turn (standard math convention: 0°=right, 90°=up).
@@ -146,9 +142,6 @@ def turnAntiClockwise(particles, angle: float):
 
         wait_for_motor_position(left_target, right_target)
 
-        # Update particles
-        particles.turn(angle)
-
         time.sleep(MINI_WAIT_TIME)  # Small pause after reaching target
         print("Turn completed\n")
 
@@ -156,12 +149,6 @@ def turnAntiClockwise(particles, angle: float):
         print("IOError in turnAntiClockwise: %s" % error)
 
 if __name__ == "__main__":
-
-    class DummyParticles:
-        def forward(self, x): pass
-        def turn(self, x): pass
-
-    dummy = DummyParticles()
 
     def calibrate_distance():
         global WHEEL_CIRCUMFERENCE, WHEEL_DIAMETER
@@ -172,7 +159,7 @@ if __name__ == "__main__":
             return
 
         print("Moving forward %g mm..." % dist_mm)
-        forward(dummy, dist_mm)
+        forward(dist_mm)
 
         try:
             actual_mm = float(input("Measured actual distance traveled (mm): ").strip())
@@ -203,7 +190,7 @@ if __name__ == "__main__":
             return
 
         print("Turning %g degrees anticlockwise..." % angle_deg)
-        turnAntiClockwise(dummy, angle_deg)
+        turnAntiClockwise(angle_deg)
 
         try:
             actual_deg = float(input("Measured actual angle turned (degrees): ").strip())
@@ -242,8 +229,8 @@ if __name__ == "__main__":
     #     else:
     #         print("Invalid choice.\n")
 
-    forward(dummy, 400)
-    turnAntiClockwise(dummy, 45)
-    forward(dummy, 200)
+    forward(400)
+    turnAntiClockwise(45)
+    forward(200)
 
     BP.reset_all()
