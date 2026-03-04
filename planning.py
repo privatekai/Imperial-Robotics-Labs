@@ -389,8 +389,8 @@ def main():
             displayImg(img)
 
             # Cap barrier list to prevent stale detections accumulating
-            # if len(barriers) > MAX_BARRIERS:
-            #     barriers = barriers[-MAX_BARRIERS:]
+            if len(barriers) > MAX_BARRIERS:
+                barriers = barriers[-MAX_BARRIERS:]
 
             # --- DWA Planning ---
             vL, vR, _ = dwa_choose_velocities(x, y, theta, vL, vR, verbose=True)
