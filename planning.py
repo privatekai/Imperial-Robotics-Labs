@@ -135,7 +135,7 @@ while(1):
     # But should be okay for now
     barriers = [HtransformUVtoXY(HInv, lowest_point[1], -lowest_point[0]) for (*_ , lowest_point) in canCentroids]
 
-    best_score_index = None
+    best_angle = None
     best_score = 0
     for i in range(len(semicircle_positions)):
         (x,y,angle) = semicircle_positions[i]
@@ -144,17 +144,16 @@ while(1):
         print(f"x: {x}, y: {y}, theta: {angle}")
         print("score: ", score)
         if score > best_score:
-            best_score_index = i
+            best_angle = angle
             best_score = score
 
-    _, _, angle = semicircle_positions[best_score_index]
-    print(f"SELECTED MOV - x: {x}, y: {y}, theta: {angle}")
+    print(f"SELECTED MOV - x: {x}, y: {y}, theta: {best_angle}")
 
     # TODO: Turn, move forward, Turn back
 
-    turnAntiClockwise(angle)
+    turnAntiClockwise(best_angle)
     forward(SEMICIRCLE_RADIUS * 10)
-    turnAntiClockwise(-angle)
+    turnAntiClockwise(-best_angle)
     
     # for (x, y, w, h, area, lowest_point) in canCentroids:
 
