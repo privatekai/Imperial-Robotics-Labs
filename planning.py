@@ -147,7 +147,7 @@ while(1):
     # TODO: Turn, move forward, Turn back
 
     turnAntiClockwise(angle)
-    forward(SEMICIRCLE_RADIUS)
+    forward(SEMICIRCLE_RADIUS * 10)
     turnAntiClockwise(-angle)
     
     # for (x, y, w, h, area, lowest_point) in canCentroids:
