@@ -8,9 +8,8 @@ from picameracans import captureCanCentroids, displayImg, WHITE, FONT
 from picamerahomographygrid import drawGridOnImage, HtransformXYtoUV, HtransformUVtoXY, H
 # from motion import forward, turnAntiClockwise
 
-BARRIER_UNCERTAINTY = 5
-
-
+B_UNCERTAINTY = 2
+RADIUS = 2
 
 # Needed constants
 # TODO: Set these constants.
@@ -133,7 +132,7 @@ while(1):
         while i < len(barriers):
             (barrier_x, barrier_y) = barriers[i]
             # Check if barrier already exists in barriers
-            if abs(barrier_x - lowest_x) < BARRIER_UNCERTAINTY and abs(barrier_y - lowest_y) < BARRIER_UNCERTAINTY:
+            if abs(barrier_x - lowest_x) < RADIUS + B_UNCERTAINTY and abs(barrier_y - lowest_y) < RADIUS + B_UNCERTAINTY:
                 barriers.remove(i)
                 barriers.append((lowest_x, lowest_y))
                 break
