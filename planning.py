@@ -246,8 +246,8 @@ def main():
     theta = math.pi / 2  # facing +y (toward target)
 
     # Initial velocities (cm/s)
-    vL = 3.0
-    vR = 3.0
+    vL = 1.0
+    vR = 1.0
 
     # Reset encoders to zero
     BP.offset_motor_encoder(LEFT_PORT, BP.get_motor_encoder(LEFT_PORT))
