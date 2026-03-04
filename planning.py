@@ -23,7 +23,7 @@ picam2.configure(preview_config)
 picam2.start()
 
 # Timestep delta to run control at
-dt = 0.2
+dt = 0.5
 
 # Target location (cm) — 4.5m ahead along y-axis
 target = (0, 450)
@@ -295,8 +295,8 @@ def main():
             displayImg(img)
 
             # Cap barrier list to prevent stale detections accumulating
-            if len(barriers) > MAX_BARRIERS:
-                barriers = barriers[-MAX_BARRIERS:]
+            # if len(barriers) > MAX_BARRIERS:
+            #     barriers = barriers[-MAX_BARRIERS:]
 
             # --- DWA Planning ---
             vL, vR, _ = dwa_choose_velocities(x, y, theta, vL, vR, verbose=True)
