@@ -132,6 +132,7 @@ def calculateClosestObstacleDistance(x, y, barriers):
 semicircle_positions = semicircle()
 
 # Main loop
+debug_i = 0
 while(1):
     # Check if any new barriers are visible from current pose -> i.e. run our camera object detection code here
     (img, canCentroids) = captureCanCentroids(picam2)
@@ -140,6 +141,14 @@ while(1):
     # Note: Probably still need another fail safe to ensure that we don't add extra barriers
     # But should be okay for now
     barriers = [HtransformUVtoXY(HInv, lowest_point[1], -lowest_point[0]) for (*_ , lowest_point) in canCentroids]
+
+    f_type = "w" if debug_i == 0 else "a"
+    with open("barriers_out.txt", f_type) as f:
+        f.write("--- BARRIERS ---\n")
+        f.write("loop number " + str(debug_i) + "\n")
+        for barrier in barriers:
+            f.write(str(barrier) + "\n")
+        f.close()
 
     best_angle = None
     best_score = 0
@@ -160,6 +169,8 @@ while(1):
     turnAntiClockwise(best_angle)
     forward(SEMICIRCLE_RADIUS * 10)
     turnAntiClockwise(-best_angle)
+
+    debug_i += 1
     
     # for (x, y, w, h, area, lowest_point) in canCentroids:
 
