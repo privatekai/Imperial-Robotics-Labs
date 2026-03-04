@@ -93,7 +93,7 @@ def scorePosition(new_x, new_y, barriers, x = 0, y = 0):
     distance = magnitude(proj_x - c_x, proj_y - c_y)
     
     # Calculate score
-    score = new_x * math.cos(FORWARD_THETA) + new_y * math.sin(FORWARD_THETA)
+    score = new_x * math.cos(math.radians(FORWARD_THETA)) + new_y * math.sin(math.radians(FORWARD_THETA))
     if distance < BARRIER_RADIUS + ROBOT_RADIUS: 
         score = float("-inf")
     elif CAN_X_UNCERTAINTY - distance > 0: # Pick better x uncertainty here
@@ -111,15 +111,14 @@ def calculateClosestObstacleDistance(x, y, barriers):
     # Calculate distance to closest obstacle
     for barrier in barriers:
         # Is this a barrier we know about? barrier[2] flag is set when sonar observes it
-        if(barrier[2] == 1):
-            dx = barrier[0] - x
-            dy = barrier[1] - y
-            d = math.sqrt(dx**2 + dy**2)
-            # Distance between closest touching point of circular robot and circular barrier
-            dist = d - BARRIER_RADIUS - ROBOT_RADIUS
-            if (dist < closest_dist):
-                closest_dist = dist
-                closest_barrier = barrier
+        dx = barrier[0] - x
+        dy = barrier[1] - y
+        d = math.sqrt(dx**2 + dy**2)
+        # Distance between closest touching point of circular robot and circular barrier
+        dist = d - BARRIER_RADIUS - ROBOT_RADIUS
+        if (dist < closest_dist):
+            closest_dist = dist
+            closest_barrier = barrier
     return closest_barrier
 
 semicircle_positions = semicircle()
@@ -132,7 +131,7 @@ while(1):
 
     # Note: Probably still need another fail safe to ensure that we don't add extra barriers
     # But should be okay for now
-    barriers = [HtransformUVtoXY(HInv, lowest_point[0], lowest_point[1]) for (*_ , lowest_point) in canCentroids]
+    barriers = [HtransformUVtoXY(HInv, lowest_point[1], -lowest_point[0]) for (*_ , lowest_point) in canCentroids]
 
     best_score_index = (0,0)
     for i in range(len(semicircle_positions)):
