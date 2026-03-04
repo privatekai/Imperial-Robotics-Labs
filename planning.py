@@ -23,7 +23,7 @@ picam2.configure(preview_config)
 picam2.start()
 
 # Timestep delta to run control at
-dt = 0.4
+dt = 0.1
 
 # Target location (cm) — 4.5m ahead along y-axis
 target = (0, 450)
@@ -122,7 +122,7 @@ def dwa_choose_velocities(x, y, theta, vL, vR, verbose=False):
 
     for vLpossible in vLpossiblearray:
         for vRpossible in vRpossiblearray:
-            if abs(vLpossible) <= MAXVELOCITY and abs(vRpossible) <= MAXVELOCITY:
+            if abs(vLpossible) <= MAXVELOCITY and abs(vRpossible) <= MAXVELOCITY and not (vLpossible < 0 and vRpossible < 0):
                 candidates_evaluated += 1
                 (xpredict, ypredict, thetapredict) = predictPosition(
                     vLpossible, vRpossible, x, y, theta, TAU)
