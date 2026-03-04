@@ -23,7 +23,7 @@ picam2.configure(preview_config)
 picam2.start()
 
 # Timestep delta to run control at
-dt = 0.8
+dt = 0.25
 
 # Target location (cm) — 4.5m ahead along y-axis
 target = (0, 450)
@@ -245,7 +245,6 @@ def main():
                     continue
 
                 # Transform camera-frame to world-frame using robot pose + heading
-                # cam_x = forward (along robot facing), cam_y = lateral
                 world_x = x + cam_x * math.cos(theta) + cam_y * math.sin(theta)
                 world_y = y + cam_x * math.sin(theta) - cam_y * math.cos(theta)
                 add_barrier(world_x, world_y)
