@@ -25,6 +25,9 @@ picam2.start()
 # Timestep delta to run control at
 dt = 0.25
 
+# Timestep it takes for loop to finish
+loop_time_ = 0.250
+
 # Target location (cm) — 4.5m ahead along y-axis
 target = (0, 450)
 
@@ -131,7 +134,7 @@ def dwa_choose_velocities(x, y, theta, vL, vR, verbose=False):
                 min_obstacle_dist = float('inf')
                 for s in range(1, 6):
                     t = TAU * s / 5
-                    xp, yp, _ = predictPosition(vLpossible, vRpossible, x, y, theta, t)
+                    xp, yp, _ = predictPosition(vLpossible, vRpossible, x, y, theta, t + loop_time_)
                     d = calculateClosestObstacleDistance(xp, yp)
                     if d < min_obstacle_dist:
                         min_obstacle_dist = d
