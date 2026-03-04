@@ -105,7 +105,10 @@ def dwa_choose_velocities(x, y, theta, vL, vR, verbose=False):
     best_obs_cost = 0.0
     best_obs_dist = float('inf')
 
-    with open("barrier_out.txt", "a") as f:
+    type = "a"
+    if x==0.0 and y==0.0:
+        type = "w"
+    with open("barrier_out.txt", type) as f:
         f.write("--- BARRIERS --- \n")
         for barrier in barriers:
             f.write(str(barrier) + "\n")
@@ -144,7 +147,7 @@ def dwa_choose_velocities(x, y, theta, vL, vR, verbose=False):
                     obstacleCost = 0.0
                     speedCost = 0.0
                 
-                with open("planning_out.txt", "a") as f:
+                with open("planning_out.txt", type) as f:
                     f.write("--- CANDIDATE --- \n")
                     f.write("vL: " + str(vLpossible) + "\n")
                     f.write("vR: " + str(vRpossible) + "\n")
