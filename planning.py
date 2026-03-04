@@ -241,7 +241,7 @@ def main():
             for (*_, lowest_point) in canCentroids:
                 # Transform pixel coords to camera-frame ground plane (cm)
                 (cam_x, cam_y) = HtransformUVtoXY(HInv, lowest_point[0], lowest_point[1])
-                if cam_y > CAM_DIST: # centroid is too far away, consider if closer
+                if cam_x > CAM_DIST: # centroid is too far away, consider if closer
                     continue
 
                 # Transform camera-frame to world-frame using robot pose + heading
