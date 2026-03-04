@@ -35,7 +35,7 @@ barriers = []
 
 def cm_per_sec_to_dps(v_cm):
     """Convert velocity in cm/s to motor degrees per second."""
-    return - (v_cm / WHEEL_CIRCUMFERENCE_CM) * 360.0
+    return (v_cm / WHEEL_CIRCUMFERENCE_CM) * 360.0
 
 
 def encoder_deg_to_cm(deg):
@@ -246,8 +246,8 @@ def main():
 
                 # Transform camera-frame to world-frame using robot pose + heading
                 # cam_x = forward (along robot facing), cam_y = lateral
-                world_x = x + cam_x * math.cos(theta) - cam_y * math.sin(theta)
-                world_y = y + cam_x * math.sin(theta) + cam_y * math.cos(theta)
+                world_x = x + cam_x * math.cos(theta) + cam_y * math.sin(theta)
+                world_y = y + cam_x * math.sin(theta) - cam_y * math.cos(theta)
                 add_barrier(world_x, world_y)
 
                 # Draw detection on image
