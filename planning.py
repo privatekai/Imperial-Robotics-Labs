@@ -23,7 +23,7 @@ picam2.configure(preview_config)
 picam2.start()
 
 # Timestep delta to run control at
-dt = 0.5
+dt = 0.2
 
 # Target location (cm) — 4.5m ahead along y-axis
 target = (0, 450)
@@ -145,7 +145,7 @@ def dwa_choose_velocities(x, y, theta, vL, vR, verbose=False):
 
                 if distanceToObstacle < SAFEDIST:
                     obstacleCost = OBSTACLEWEIGHT * (SAFEDIST - distanceToObstacle)
-                    speed = ((vLpossible) + (vRpossible)) / 2.0
+                    speed = (abs(vLpossible) + abs(vRpossible)) / 2.0
                     speedCost = SPEEDWEIGHT * speed * (SAFEDIST - distanceToObstacle) / SAFEDIST
                 else:
                     obstacleCost = 0.0
@@ -153,16 +153,16 @@ def dwa_choose_velocities(x, y, theta, vL, vR, verbose=False):
 
                 # Project displacement onto the vector from robot to target,
                 # normalised by the max distance the robot can travel in TAU.
-                to_target_x = target[0] - x
-                to_target_y = target[1] - y
-                to_target_dist = math.sqrt(to_target_x**2 + to_target_y**2)
-                dx_moved = xpredict - x
-                dy_moved = ypredict - y
-                if to_target_dist > 0 and MAXVELOCITY * TAU > 0:
-                    projection = (dx_moved * to_target_x + dy_moved * to_target_y) / to_target_dist
-                    headingBenefit = HEADINGWEIGHT * projection / (MAXVELOCITY * TAU)
-                else:
-                    headingBenefit = 0.0
+                # to_target_x = target[0] - x
+                # to_target_y = target[1] - y
+                # to_target_dist = math.sqrt(to_target_x**2 + to_target_y**2)
+                # dx_moved = xpredict - x
+                # dy_moved = ypredict - y
+                # if to_target_dist > 0 and MAXVELOCITY * TAU > 0:
+                #     projection = (dx_moved * to_target_x + dy_moved * to_target_y) / to_target_dist
+                #     headingBenefit = HEADINGWEIGHT * projection / (MAXVELOCITY * TAU)
+                # else:
+                #     headingBenefit = 0.0
 
                 with open("planning_out.txt", type) as f:
                     f.write("--- CANDIDATE --- \n")
