@@ -150,15 +150,25 @@ def dwa_choose_velocities(x, y, theta, vL, vR, verbose=False):
                     obstacleCost = 0.0
                     speedCost = 0.0
 
-                heading_diff = (thetapredict - goal_heading + math.pi) % (2 * math.pi) - math.pi
-                headingBenefit = HEADINGWEIGHT * math.cos(heading_diff)
+                # Project displacement onto the vector from robot to target,
+                # normalised by the max distance the robot can travel in TAU.
+                to_target_x = target[0] - x
+                to_target_y = target[1] - y
+                to_target_dist = math.sqrt(to_target_x**2 + to_target_y**2)
+                dx_moved = xpredict - x
+                dy_moved = ypredict - y
+                if to_target_dist > 0 and MAXVELOCITY * TAU > 0:
+                    projection = (dx_moved * to_target_x + dy_moved * to_target_y) / to_target_dist
+                    headingBenefit = HEADINGWEIGHT * projection / (MAXVELOCITY * TAU)
+                else:
+                    headingBenefit = 0.0
 
                 with open("planning_out.txt", type) as f:
                     f.write("--- CANDIDATE --- \n")
                     f.write("vL: " + str(vLpossible) + "\n")
                     f.write("vR: " + str(vRpossible) + "\n")
                     f.write("distance benefit: " + str(distanceBenefit) + "\n")
-                    f.write("heading benefit: " + str(headingBenefit) + "\n")
+                    f.write("movement-to-target benefit: " + str(headingBenefit) + "\n")
                     f.write("obstacle cost: " + str(obstacleCost) + "\n")
                     f.write("speed cost: " + str(speedCost) + "\n")
 
@@ -203,7 +213,7 @@ def dwa_choose_velocities(x, y, theta, vL, vR, verbose=False):
               (candidates_evaluated, candidates_clamped))
         print("  chosen: vL=%.2f vR=%.2f  (dps: L=%.0f R=%.0f)" %
               (vLchosen, vRchosen, cm_per_sec_to_dps(vLchosen), cm_per_sec_to_dps(vRchosen)))
-        print("  scores: benefit=%.2f  forward=%.2f  heading=%.2f  obs_cost=%.2f  obs_dist=%.1f" %
+        print("  scores: benefit=%.2f  forward=%.2f  move-to-target=%.2f  obs_cost=%.2f  obs_dist=%.1f" %
               (bestBenefit, best_forward, best_heading, best_obs_cost, best_obs_dist))
         if best_obs_dist < SAFEDIST:
             print("  ** AVOIDING OBSTACLE (dist %.1f < safe %.1f) **" %
