@@ -2,6 +2,7 @@ import brickpi3
 import math
 import cv2
 import numpy as np
+from motion import forward, turnAntiClockwise
 from picamera2 import Picamera2
 from picameracans import captureCanCentroids, displayImg, WHITE, FONT
 from picamerahomographygrid import drawGridOnImage, HtransformXYtoUV, HtransformUVtoXY, HInv
@@ -11,6 +12,8 @@ from lin_alg import projection, magnitude
 BARRIER_RADIUS = 3.3
 RADIUS = 2
 ROBOT_RADIUS = 10
+
+FORWARD_THETA = 0
 
 SEMICIRCLE_FIDELITY = 11 # number of evaluated points on the evaluated the circle
 SEMICIRCLE_RADIUS = 5 # in cm
@@ -60,8 +63,8 @@ theta = 0.0
 # TODO: Set this variable to something accurate to the location of the target in the real life course.
 target = (0, 400)
 
-def semicircle(x = 0, y = 0, theta = 90):
-    if theta != 90:
+def semicircle(x = 0, y = 0, theta = FORWARD_THETA):
+    if theta != FORWARD_THETA:
         print("semicircle, WARNING: ROBOT SHOULD BE FACING FORWARDS!")
         
     least_angle = theta - SEMICIRCLE_RANGE / 2
@@ -75,7 +78,7 @@ def semicircle(x = 0, y = 0, theta = 90):
         new_x = x + SEMICIRCLE_RADIUS * math.cos(cur_rads)
         new_y = y + SEMICIRCLE_RADIUS * math.sin(cur_rads)
         
-        semicircle_positions.append((new_x, new_y))
+        semicircle_positions.append((new_x, new_y, cur_angle))
     
     return semicircle_positions
 
@@ -90,8 +93,8 @@ def scorePosition(new_x, new_y, barriers, x = 0, y = 0):
     distance = magnitude(proj_x - c_x, proj_y - c_y)
     
     # Calculate score
-    score = y
-    if distance < BARRIER_RADIUS: 
+    score = new_x * math.cos(FORWARD_THETA) + new_y * math.sin(FORWARD_THETA)
+    if distance < BARRIER_RADIUS + ROBOT_RADIUS: 
         score = float("-inf")
     elif CAN_X_UNCERTAINTY - distance > 0: # Pick better x uncertainty here
         score -= CAN_X_UNCERTAINTY - distance # Cost of hitting can
@@ -133,15 +136,18 @@ while(1):
 
     best_score_index = (0,0)
     for i in range(len(semicircle_positions)):
-        (x,y) = semicircle_positions[i]
+        (x,y,angle) = semicircle_positions[i]
         score = scorePosition(x, y, barriers)
         if score > best_score_index:
             best_score_index = (score, i)
 
-    desired_pos = semicircle_positions[best_score_index[1]]
+    x, y, angle = semicircle_positions[best_score_index[1]]
 
     # TODO: Turn, move forward, Turn back
 
+    turnAntiClockwise(angle)
+    forward(SEMICIRCLE_RADIUS)
+    turnAntiClockwise(-angle)
     
     # for (x, y, w, h, area, lowest_point) in canCentroids:
 
