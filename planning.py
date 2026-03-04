@@ -140,9 +140,6 @@ def dwa_choose_velocities(x, y, theta, vL, vR, verbose=False):
                         min_obstacle_dist = d
                 distanceToObstacle = min_obstacle_dist
 
-                if distanceToObstacle < 0:
-                    barriers = []
-
                 previousTargetDistance = math.sqrt((x - target[0])**2 + (y - target[1])**2)
                 newTargetDistance = math.sqrt((xpredict - target[0])**2 + (ypredict - target[1])**2)
                 distanceForward = previousTargetDistance - newTargetDistance
