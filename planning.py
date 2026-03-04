@@ -12,11 +12,12 @@ from lin_alg import projection, magnitude
 BARRIER_RADIUS = 3.3
 RADIUS = 2
 ROBOT_RADIUS = 10
+MOVEMENT_DIST = 20
 
 FORWARD_THETA = 0
 
 SEMICIRCLE_FIDELITY = 11 # number of evaluated points on the evaluated the circle
-SEMICIRCLE_RADIUS = 20 # in cm
+SEMICIRCLE_RADIUS = 40 # in cm
 SEMICIRCLE_RANGE = 180 # range of angles in the semicircle
 SEMICIRCLE_STEP = SEMICIRCLE_RANGE / (SEMICIRCLE_FIDELITY - 1)
 
@@ -183,7 +184,7 @@ while(1):
     print(f"SELECTED MOV - theta: {best_angle}")
 
     turnAntiClockwise(best_angle)
-    forward(SEMICIRCLE_RADIUS * 10)
+    forward(MOVEMENT_DIST * 10)
     turnAntiClockwise(-best_angle)
 
     debug_i += 1
