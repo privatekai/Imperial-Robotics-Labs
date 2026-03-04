@@ -92,16 +92,16 @@ def scorePosition(new_x, new_y, barriers, x = 0, y = 0):
     new_x -= x
     new_y -= y
     proj_x, proj_y = projection(new_x, new_y, c_x, c_y)
-    distance = magnitude(proj_x - c_x, proj_y - c_y)
+    barrier_distance = magnitude(proj_x - c_x, proj_y - c_y)
     
     # Calculate score
     score = new_x * math.cos(math.radians(FORWARD_THETA)) + new_y * math.sin(math.radians(FORWARD_THETA))
-    print("base score:", score)
-    if distance < BARRIER_RADIUS + ROBOT_RADIUS: 
+    if barrier_distance < BARRIER_RADIUS + ROBOT_RADIUS:
+        print(">>>>>>>too close!!!!") 
         score = float("-inf")
-    elif CAN_X_UNCERTAINTY - distance > 0: # Pick better x uncertainty here
-        score -= CAN_X_UNCERTAINTY - distance # Cost of hitting can
-    print("score with obstacle correction:", score)
+    elif CAN_X_UNCERTAINTY - barrier_distance > 0: # Pick better x uncertainty here
+        print(">>>>>>>add some cost...")
+        score -= CAN_X_UNCERTAINTY - barrier_distance # Cost of hitting can
 
     return score
 
