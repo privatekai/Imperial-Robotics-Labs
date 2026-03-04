@@ -203,6 +203,18 @@ def dwa_choose_velocities(x, y, theta, vL, vR, verbose=False):
     return vLchosen, vRchosen, debug
 
 
+def update_pose(x, y, theta, dL_cm, dR_cm):
+    """Apply one dead-reckoning step given wheel displacements in cm.
+    Returns (x_new, y_new, theta_new)."""
+    d_forward = (dL_cm + dR_cm) / 2.0
+    d_theta   = (dR_cm - dL_cm) / WHEELBASE_CM
+    x_new     = x + d_forward * math.cos(theta + d_theta / 2.0)
+    y_new     = y + d_forward * math.sin(theta + d_theta / 2.0)
+    theta_new = theta + d_theta
+    theta_new = (theta_new + math.pi) % (2 * math.pi) - math.pi
+    return x_new, y_new, theta_new
+
+
 def main():
     global barriers
 
@@ -287,20 +299,13 @@ def main():
             dR = encoder_deg_to_cm(enc_right_after - enc_right_before)
 
             # Update pose via dead reckoning
-            d_forward = (dL + dR) / 2.0
-            d_theta = (dR - dL) / WHEELBASE_CM
-
-            x += d_forward * math.cos(theta + d_theta / 2.0)
-            y += d_forward * math.sin(theta + d_theta / 2.0)
-            theta += d_theta
-            theta = (theta + math.pi) % (2 * math.pi) - math.pi
+            x, y, theta = update_pose(x, y, theta, dL, dR)
 
             loop_time = time.time() - loop_start
             print("--- ODOM ---")
             print("  encoders: dL=%.1f° dR=%.1f°  -> dL=%.2f cm dR=%.2f cm" %
                   (enc_left_after - enc_left_before, enc_right_after - enc_right_before, dL, dR))
-            print("  dead_reck: fwd=%.2f cm  dtheta=%.2f°" %
-                  (d_forward, math.degrees(d_theta)))
+            print("  dead_reck: dL=%.2f cm  dR=%.2f cm" % (dL, dR))
             print("  new_pose: (%.1f, %.1f) theta=%.1f°  dist=%.1f cm" %
                   (x, y, math.degrees(theta), dist_to_target))
             print("  loop_time: %.0f ms" % (loop_time * 1000))
