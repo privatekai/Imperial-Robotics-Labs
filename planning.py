@@ -145,7 +145,7 @@ def dwa_choose_velocities(x, y, theta, vL, vR, verbose=False):
 
                 if distanceToObstacle < SAFEDIST:
                     obstacleCost = OBSTACLEWEIGHT * (SAFEDIST - distanceToObstacle)
-                    speed = ((vLpossible) + (vRpossible)) / 2.0
+                    speed = (abs(vLpossible) + abs(vRpossible)) / 2.0
                     speedCost = SPEEDWEIGHT * speed * (SAFEDIST - distanceToObstacle) / SAFEDIST
                 else:
                     obstacleCost = 0.0
