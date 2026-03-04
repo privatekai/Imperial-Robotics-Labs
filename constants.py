@@ -47,6 +47,7 @@ MAX_BARRIERS = 20                       # used by: planning
 FORWARDWEIGHT = 12                      # used by: planning
 OBSTACLEWEIGHT = 24                     # used by: planning
 SPEEDWEIGHT = 0.0                       # used by: planning
+HEADINGWEIGHT = 8                       # used by: planning
 TAU = 1.5                               # used by: planning  (seconds)
 # DEDUP_RADIUS = BARRIERRADIUS + 10.0      # used by: planning  (cm)
 Y_UNCERTAINTY = 30
