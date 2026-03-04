@@ -141,14 +141,14 @@ while(1):
         (x,y,angle) = semicircle_positions[i]
         score = scorePosition(x, y, barriers)
 
-        print(f"x: {x}, y: {y}, theta: {theta}")
+        print(f"x: {x}, y: {y}, theta: {angle}")
         print("score: ", score)
         if score > best_score:
             best_score_index = i
             best_score = score
 
     _, _, angle = semicircle_positions[best_score_index]
-    print(f"SELECTED MOV - x: {x}, y: {y}, theta: {theta}")
+    print(f"SELECTED MOV - x: {x}, y: {y}, theta: {angle}")
 
     # TODO: Turn, move forward, Turn back
 
