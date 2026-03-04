@@ -20,8 +20,8 @@ SEMICIRCLE_RADIUS = 20 # in cm
 SEMICIRCLE_RANGE = 180 # range of angles in the semicircle
 SEMICIRCLE_STEP = SEMICIRCLE_RANGE / (SEMICIRCLE_FIDELITY - 1)
 
-CAN_X_UNCERTAINTY = 3
-CAN_Y_UNCERTAINTY = 15
+CAN_H_UNCERTAINTY = 3
+CAN_V_UNCERTAINTY = 15
 
 # Needed constants
 # TODO: Set these constants.
@@ -84,49 +84,48 @@ def semicircle(x = 0, y = 0, theta = FORWARD_THETA):
     
     return semicircle_positions
 
-def scorePosition(new_x, new_y, barriers, x = 0, y = 0):
+def scorePosition(pred_h, pred_v, barriers):
 
     # math math math...
-    dx = new_x - x
-    dy = new_y - y
-    score = dx * math.cos(math.radians(FORWARD_THETA)) + dy * math.sin(math.radians(FORWARD_THETA))
+    score = pred_h * math.cos(math.radians(FORWARD_THETA)) + pred_v * math.sin(math.radians(FORWARD_THETA))
 
-    closest_barrier = calculateClosestObstacleDistance(new_x, new_y, barriers)
+    closest_barrier = calculateClosestObstacleDistance(pred_v, pred_h, barriers)
     if not closest_barrier:
         return score
     
-    c_x, c_y = closest_barrier # assuming x = 0, y = 0 for the can coordinates
-    proj_x, proj_y = projection(dx, dy, c_x, c_y)
-    barrier_distance = magnitude(proj_x - c_x, proj_y - c_y)
+    b_v, b_h = closest_barrier # assuming x = 0, y = 0 for the can coordinates
+    proj_h, proj_v = projection(pred_h, pred_v, b_h, b_v)
+    barrier_distance = magnitude(proj_h - b_h, proj_v - b_v)
 
-    print(f"projected movement: ({proj_x}, {proj_y})")
-    print(f"closest barrier: ({c_x}, {c_y})")
+    print(f"projected movement: ({proj_h}, {proj_v})")
+    print(f"closest barrier: ({b_h}, {b_v})")
     print(f"distance to barrier: {barrier_distance}")
 
     # Calculate score
-    if proj_x >= SEMICIRCLE_RADIUS:
+    if proj_v >= SEMICIRCLE_RADIUS:
         if barrier_distance < BARRIER_RADIUS + ROBOT_RADIUS:
             print(">>>>>>>too close!!!!") 
             score = float("-inf")
-        elif CAN_X_UNCERTAINTY - barrier_distance > 0: # Pick better x uncertainty here
+        elif CAN_H_UNCERTAINTY - barrier_distance > 0: # Pick better x uncertainty here
             print(">>>>>>>add some cost...")
-            score -= CAN_X_UNCERTAINTY - barrier_distance # Cost of hitting can
+            score -= CAN_H_UNCERTAINTY - barrier_distance # Cost of hitting can
 
     return score
 
 
 # Function to calculate the closest obstacle at a position (x, y)
 # Used during planning
-def calculateClosestObstacleDistance(x, y, barriers):
+# RETURNS IN BARRIER FORMAT!?
+def calculateClosestObstacleDistance(vertical, horizontal, barriers):
     # TODO: Remove if statement about whether we know about the barrier or not.
     closest_dist = float("inf")
     closest_barrier = None
     # Calculate distance to closest obstacle
     for barrier in barriers:
         # Is this a barrier we know about? barrier[2] flag is set when sonar observes it
-        dx = barrier[0] - x
-        dy = barrier[1] - y
-        d = math.sqrt(dx**2 + dy**2)
+        dv = barrier[0] - vertical
+        dh = barrier[1] - horizontal
+        d = math.sqrt(dv**2 + dh**2)
         # Distance between closest touching point of circular robot and circular barrier
         dist = d - BARRIER_RADIUS - ROBOT_RADIUS
         if (dist < closest_dist):
@@ -146,10 +145,11 @@ while(1):
     # Note: Probably still need another fail safe to ensure that we don't add extra barriers
     # But should be okay for now
     barriers = [HtransformUVtoXY(HInv, lowest_point[0], lowest_point[1]) for (*_ , lowest_point) in canCentroids]
+    # barrier: (vertical, horizontal)
 
     f_type = "w" if debug_i == 0 else "a"
     with open("barriers_out.txt", f_type) as f:
-        f.write("--- BARRIERS ---\n")
+        f.write("--- BARRIERS --- (note: barrier format)\n")
         f.write("loop number " + str(debug_i) + "\n")
         for barrier in barriers:
             f.write(str(barrier) + "\n")
@@ -158,16 +158,16 @@ while(1):
     best_angle = 0
     best_score = float("-inf")
     for i in range(len(semicircle_positions)):
-        (x,y,angle) = semicircle_positions[i]
-        score = scorePosition(x, y, barriers)
+        (horizontal, vertical, angle) = semicircle_positions[i]
+        score = scorePosition(horizontal, vertical, barriers)
 
-        print(f"x: {x}, y: {y}, theta: {angle}")
+        print(f"horizontal: {horizontal}, vertical: {vertical}, theta: {angle}")
         print("score: ", score)
         if score > best_score:
             best_angle = angle
             best_score = score
 
-    print(f"SELECTED MOV - x: {x}, y: {y}, theta: {best_angle}")
+    print(f"SELECTED MOV - horizontal: {horizontal}, vertical: {vertical}, theta: {best_angle}")
 
     # TODO: Turn, move forward, Turn back
 
