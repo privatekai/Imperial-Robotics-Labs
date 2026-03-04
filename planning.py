@@ -87,7 +87,7 @@ def semicircle(x = 0, y = 0, theta = FORWARD_THETA):
 def scorePosition(new_x, new_y, barriers, x = 0, y = 0):
 
     # math math math...
-    closest_barrier = calculateClosestObstacleDistance(x, y, barriers)
+    closest_barrier = calculateClosestObstacleDistance(new_x, new_y, barriers)
     c_x, c_y = closest_barrier # assuming x = 0, y = 0 for the can coordinates
     new_x -= x
     new_y -= y
