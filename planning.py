@@ -99,9 +99,6 @@ def scorePosition(new_x, new_y, barriers, x = 0, y = 0):
     elif CAN_X_UNCERTAINTY - distance > 0: # Pick better x uncertainty here
         score -= CAN_X_UNCERTAINTY - distance # Cost of hitting can
 
-    print("x: " + str(new_x) + " y: " + str(new_y))
-    print("score: ", score)
-
     return score
 
 
@@ -141,6 +138,9 @@ while(1):
     for i in range(len(semicircle_positions)):
         (x,y,angle) = semicircle_positions[i]
         score = scorePosition(x, y, barriers)
+
+        print("x: " + str(x) + " y: " + str(y) + " angle: " + str(angle))
+        print("score: ", score)
         if score > best_score:
             best_score_index = i
             best_score = score
