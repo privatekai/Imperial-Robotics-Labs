@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 from picamera2 import Picamera2
 from picameracans import captureCanCentroids, displayImg, WHITE, FONT
-from picamerahomographygrid import drawGridOnImage, HtransformXYtoUV, HtransformUVtoXY, H
+from picamerahomographygrid import drawGridOnImage, HtransformXYtoUV, HtransformUVtoXY, HInv
 # from motion import forward, turnAntiClockwise
 
 B_UNCERTAINTY = 2
@@ -124,7 +124,7 @@ while(1):
     for (x, y, w, h, area, lowest_point) in canCentroids:
 
         # This is relevant to the camera coords - make it in perspective to the robot position
-        (lowest_x, lowest_y) =  HtransformUVtoXY(H, lowest_point[0], lowest_point[1])
+        (lowest_x, lowest_y) =  HtransformUVtoXY(HInv, lowest_point[0], lowest_point[1])
         (lowest_x, lowest_y) =  (lowest_x + x, lowest_y + y)
 
         # Update to barriers
