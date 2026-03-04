@@ -67,18 +67,18 @@ def semicircle(x = 0, y = 0, theta = FORWARD_THETA):
     if theta != FORWARD_THETA:
         print("semicircle, WARNING: ROBOT SHOULD BE FACING FORWARDS!")
         
-    least_angle = theta - SEMICIRCLE_RANGE / 2
+    least_angle = theta + SEMICIRCLE_RANGE / 2
     
     semicircle_positions = []
     
     for i in range(SEMICIRCLE_FIDELITY):
-        cur_angle = least_angle + SEMICIRCLE_STEP * i
+        cur_angle = least_angle - SEMICIRCLE_STEP * i
         cur_rads = math.radians(cur_angle)
 
         print(f"CUR ANGLE: {cur_angle}")
         
-        new_x = x + SEMICIRCLE_RADIUS * math.cos(cur_rads)
-        new_y = y + SEMICIRCLE_RADIUS * math.sin(cur_rads)
+        new_x = x + SEMICIRCLE_RADIUS * math.sin(cur_rads)
+        new_y = y + SEMICIRCLE_RADIUS * math.cos(cur_rads)
         
         semicircle_positions.append((new_x, new_y, cur_angle))
     
