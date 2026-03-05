@@ -9,10 +9,10 @@ from picamerahomographygrid import drawGridOnImage, HtransformXYtoUV, Htransform
 
 from lin_alg import projection, magnitude
 
-BARRIER_RADIUS = 3.0
+BARRIER_RADIUS = 3
 RADIUS = 2
 ROBOT_RADIUS = 10
-MOVEMENT_DIST = 25
+MOVEMENT_DIST = 15
 
 FORWARD_THETA = 0
 
