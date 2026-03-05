@@ -173,10 +173,8 @@ if __name__ == "__main__":
             best_angle = 0
             best_score = float("-inf")
 
-            dir = debug_i % 2
             for i in range(len(semicircle_positions)):
-                j = len(semicircle_positions) - i - 1 if dir == 1 else i
-                (horizontal, vertical, angle) = semicircle_positions[j]
+                (horizontal, vertical, angle) = semicircle_positions[i]
                 score = scorePosition(horizontal, vertical, barriers)
 
                 print(f"horizontal: {horizontal}, vertical: {vertical}, theta: {angle}")
