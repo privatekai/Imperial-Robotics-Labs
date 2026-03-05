@@ -2,7 +2,7 @@ import brickpi3
 import math
 import cv2
 import numpy as np
-from motion import forward, turnAntiClockwise
+from motion import forward, reset_motors, turnAntiClockwise
 from picamera2 import Picamera2
 from picameracans import captureCanCentroids, displayImg, WHITE, FONT
 from picamerahomographygrid import drawGridOnImage, HtransformXYtoUV, HtransformUVtoXY, HInv
@@ -191,7 +191,7 @@ if __name__ == "__main__":
             debug_i += 1
 
     finally:
-        BP.reset_all()
+        reset_motors()
         picam2.stop()
         print("Motors reset. Camera stopped.")
 

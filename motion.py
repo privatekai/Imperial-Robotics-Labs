@@ -148,6 +148,9 @@ def turnAntiClockwise(angle: float):
     except IOError as error:
         print("IOError in turnAntiClockwise: %s" % error)
 
+def reset_motors():
+    BP.reset_all()
+
 if __name__ == "__main__":
 
     def calibrate_distance():
