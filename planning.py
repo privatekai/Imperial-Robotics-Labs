@@ -135,7 +135,7 @@ def calculate3ClosestObstacleDistance(vertical, horizontal, barriers):
         return dist
 
 
-    barriers.sort(key=lambda x, y, _: dist(x,y))
+    barriers.sort(key=lambda b: dist(b[0],b[1]))
     to_take = min(len(barriers), 3)
     closest_barriers3 = barriers[:to_take]
 
