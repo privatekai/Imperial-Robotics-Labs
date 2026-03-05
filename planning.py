@@ -86,7 +86,7 @@ def semicircle(x = 0, y = 0, theta = FORWARD_THETA):
     return semicircle_positions
 
 def scorePosition(pred_h, pred_v, barriers):
-    score = pred_v
+    score = pred_v - 0.0001 * abs(pred_h) # prefer forward movement, but also prefer not to be too far off centre
 
     closest_barriers = calculate3ClosestObstacleDistance(pred_v, pred_h, barriers)
     if not closest_barriers:
