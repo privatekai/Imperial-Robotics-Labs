@@ -175,7 +175,7 @@ if __name__ == "__main__":
 
             dir = debug_i % 2
             for i in range(len(semicircle_positions)):
-                j = len(semicircle_positions) - i if dir == 1 else i
+                j = len(semicircle_positions) - i - 1 if dir == 1 else i
                 (horizontal, vertical, angle) = semicircle_positions[j]
                 score = scorePosition(horizontal, vertical, barriers)
 
@@ -187,9 +187,12 @@ if __name__ == "__main__":
 
             print(f"SELECTED MOV - theta: {best_angle}")
 
-            turnAntiClockwise(best_angle)
-            forward(MOVEMENT_DIST * 10)
-            turnAntiClockwise(-best_angle)
+            if best_angle != 0:
+                turnAntiClockwise(best_angle)
+                forward(MOVEMENT_DIST * 10)
+                turnAntiClockwise(-best_angle)
+            else:
+                forward(MOVEMENT_DIST * 10)
 
             debug_i += 1
 
