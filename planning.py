@@ -17,7 +17,7 @@ MOVEMENT_DIST = 20
 FORWARD_THETA = 0
 
 SEMICIRCLE_FIDELITY = 11 # number of evaluated points on the evaluated the circle
-SEMICIRCLE_RADIUS = 35 # in cm
+SEMICIRCLE_RADIUS = 30 # in cm
 SEMICIRCLE_RANGE = 180 # range of angles in the semicircle
 SEMICIRCLE_STEP = SEMICIRCLE_RANGE / (SEMICIRCLE_FIDELITY - 1)
 
