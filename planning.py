@@ -9,15 +9,15 @@ from picamerahomographygrid import drawGridOnImage, HtransformXYtoUV, Htransform
 
 from lin_alg import projection, magnitude
 
-BARRIER_RADIUS = 3.3
+BARRIER_RADIUS = 3.0
 RADIUS = 2
 ROBOT_RADIUS = 10
-MOVEMENT_DIST = 20
+MOVEMENT_DIST = 25
 
 FORWARD_THETA = 0
 
 SEMICIRCLE_FIDELITY = 11 # number of evaluated points on the evaluated the circle
-SEMICIRCLE_RADIUS = 30 # in cm
+SEMICIRCLE_RADIUS = 20 # in cm
 SEMICIRCLE_RANGE = 180 # range of angles in the semicircle
 SEMICIRCLE_STEP = SEMICIRCLE_RANGE / (SEMICIRCLE_FIDELITY - 1)
 
