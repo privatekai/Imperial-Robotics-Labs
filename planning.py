@@ -23,7 +23,7 @@ picam2.configure(preview_config)
 picam2.start()
 
 # Timestep delta to run control at
-dt = 0.3
+dt = 1.0
 
 # Target location (cm) — 4.5m ahead along y-axis
 target = (0, 450)
