@@ -6,7 +6,7 @@ import brickpi3
 
 # UNITS ARE MILLIMETRES
 
-MOVEMENT_SPEED = 900  # Speed for moving forward (Degrees Per Second)
+MOVEMENT_SPEED = 1000  # Speed for moving forward (Degrees Per Second)
 TURNING_SPEED = 300   # Speed for turning (Degrees Per Second)
 
 PI = 3.14159627
