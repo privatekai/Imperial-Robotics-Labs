@@ -6,7 +6,7 @@ import brickpi3
 
 # UNITS ARE MILLIMETRES
 
-MOVEMENT_SPEED = 600  # Speed for moving forward (Degrees Per Second)
+MOVEMENT_SPEED = 900  # Speed for moving forward (Degrees Per Second)
 TURNING_SPEED = 300   # Speed for turning (Degrees Per Second)
 
 PI = 3.14159627
@@ -18,7 +18,7 @@ WHEELBASE_WIDTH = 152
 DISTANCE_ERROR = -1.15 * PI # Making it bigger makes it go less far
 ANGLE_ERROR = -3.074 # Making it bigger makes it turn more
 
-MINI_WAIT_TIME = 0.15  # Time to wait after each movement (Seconds)
+MINI_WAIT_TIME = 0.05  # Time to wait after each movement (Seconds)
 
 BP = brickpi3.BrickPi3() # Create an instance of the BrickPi3 class. BP will be the BrickPi3 object.
 
