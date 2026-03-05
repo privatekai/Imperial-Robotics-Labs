@@ -2,7 +2,7 @@ import brickpi3
 import math
 import cv2
 import numpy as np
-from motion import forward, turnAntiClockwise
+from motion import forward, reset_motors, turnAntiClockwise
 from picamera2 import Picamera2
 from picameracans import captureCanCentroids, displayImg, WHITE, FONT
 from picamerahomographygrid import drawGridOnImage, HtransformXYtoUV, HtransformUVtoXY, HInv
@@ -17,7 +17,7 @@ MOVEMENT_DIST = 20
 FORWARD_THETA = 0
 
 SEMICIRCLE_FIDELITY = 11 # number of evaluated points on the evaluated the circle
-SEMICIRCLE_RADIUS = 35 # in cm
+SEMICIRCLE_RADIUS = 30 # in cm
 SEMICIRCLE_RANGE = 180 # range of angles in the semicircle
 SEMICIRCLE_STEP = SEMICIRCLE_RANGE / (SEMICIRCLE_FIDELITY - 1)
 
@@ -135,7 +135,7 @@ def calculate3ClosestObstacleDistance(vertical, horizontal, barriers):
         return dist
 
 
-    barriers.sort(key=lambda x, y, _: dist(x,y))
+    barriers.sort(key=lambda b: dist(b[0],b[1]))
     to_take = min(len(barriers), 3)
     closest_barriers3 = barriers[:to_take]
 
@@ -191,7 +191,7 @@ if __name__ == "__main__":
             debug_i += 1
 
     finally:
-        BP.reset_all()
+        reset_motors()
         picam2.stop()
         print("Motors reset. Camera stopped.")
 
